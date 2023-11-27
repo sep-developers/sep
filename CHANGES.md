@@ -1,3 +1,17 @@
+v1.3.0dev (27 November 2023)
+====================
+
+* The `segmentation_map` argument of `sep.extract()` will now accept either an 
+  array or boolean. If an existing segmentation map is passed, the object 
+  detection stage is skipped, and sources will be individually analysed 
+  according to the provided map. This change is backwards-compatible with 
+  respect to the Python module.
+  
+  Please note that as no deblending is performed, 
+  the calculated thresholds (and any dependent parameters) may not be the same 
+  as originally derived.
+
+
 v1.2.1 (1 June 2022)
 ====================
 

@@ -309,15 +309,15 @@ int sep_extract(const sep_image *image, float thresh, int thresh_type,
                             bufh);
   if (status != RETURN_OK) goto exit;
   if (isvarnoise) {
-      status = arraybuffer_init(&nbuf, image->noise, image->ndtype, w, h,
-                                stacksize, bufh);
-      if (status != RETURN_OK) goto exit;
-    }
+    status = arraybuffer_init(&nbuf, image->noise, image->ndtype, w, h,
+                              stacksize, bufh);
+    if (status != RETURN_OK) goto exit;
+  }
   if (image->mask) {
-      status = arraybuffer_init(&mbuf, image->mask, image->mdtype, w, h,
-                                stacksize, bufh);
-      if (status != RETURN_OK) goto exit;
-    }
+    status = arraybuffer_init(&mbuf, image->mask, image->mdtype, w, h,
+                              stacksize, bufh);
+    if (status != RETURN_OK) goto exit;
+  }
   if (image->segmap) {
     status =  arraybuffer_init(&sbuf, image->segmap, image->sdtype, w, h, 
                               stacksize, bufh);
@@ -391,9 +391,9 @@ int sep_extract(const sep_image *image, float thresh, int thresh_type,
     /* allocate memory for convolved buffers */
     QMALLOC(cdscan, PIXTYPE, stacksize, status);
     if (filter_type == SEP_FILTER_MATCHED) {
-        QMALLOC(sigscan, PIXTYPE, stacksize, status);
-        QMALLOC(workscan, PIXTYPE, stacksize, status);
-      }
+      QMALLOC(sigscan, PIXTYPE, stacksize, status);
+      QMALLOC(workscan, PIXTYPE, stacksize, status);
+    }
 
     /* normalize the filter */
     convn = convw * convh;
@@ -412,97 +412,87 @@ int sep_extract(const sep_image *image, float thresh, int thresh_type,
     ps = COMPLETE;
     cs = NONOBJECT;
 
-      /* Need an empty line for Lutz' algorithm to end gracely */
-      if (yl==h) {
-        if (conv) {
-              free(cdscan);  // cdscan set to dummyscan below
-              if (filter_type == SEP_FILTER_MATCHED)
-              {
-                  for (xl=0; xl<stacksize; xl++)
-                  {
-                      sigscan[xl] = -BIG;
-                  }
-              }
-	    }
-	  cdscan = dummyscan;
-	}
-
-      else
-	{
-          arraybuffer_readline(&dbuf);
-          if (isvarnoise)
-            arraybuffer_readline(&nbuf);
-          if (image->mask)
-            {
-              arraybuffer_readline(&mbuf);
-              apply_mask_line(&mbuf, &dbuf, (isvarnoise? &nbuf: NULL));
-            }
-          if (image->segmap) {
-            arraybuffer_readline(&sbuf);
+    /* Need an empty line for Lutz' algorithm to end gracely */
+    if (yl==h) {
+      if (conv) {
+        free(cdscan);  // cdscan set to dummyscan below
+        if (filter_type == SEP_FILTER_MATCHED) {
+          for (xl=0; xl<stacksize; xl++) {
+            sigscan[xl] = -BIG;
           }
+        }
+	    }
+      cdscan = dummyscan;
+    } else {
+      arraybuffer_readline(&dbuf);
+      if (isvarnoise)
+        arraybuffer_readline(&nbuf);
+      if (image->mask) {
+        arraybuffer_readline(&mbuf);
+        apply_mask_line(&mbuf, &dbuf, (isvarnoise? &nbuf: NULL));
+      }
+      if (image->segmap) {
+        arraybuffer_readline(&sbuf);
+      }
 
-	  /* filter the lines */
-	  if (conv)
-	    {
-              status = convolve(&dbuf, yl, convnorm, convw, convh, cdscan);
-              if (status != RETURN_OK)
-                goto exit;
+      /* filter the lines */
+      if (conv) {
+        status = convolve(&dbuf, yl, convnorm, convw, convh, cdscan);
+        if (status != RETURN_OK)
+          goto exit;
 
-	      if (filter_type == SEP_FILTER_MATCHED)
-                {
-                  status = matched_filter(&dbuf, &nbuf, yl, convnorm, convw,
-                                          convh, workscan, sigscan,
-                                          image->noise_type);
+	      if (filter_type == SEP_FILTER_MATCHED) {
+          status = matched_filter(&dbuf, &nbuf, yl, convnorm, convw,
+                                  convh, workscan, sigscan,
+                                  image->noise_type);
 
-                  if (status != RETURN_OK)
-                    goto exit;
-                }
-            }
-	  else
-	    {
+          if (status != RETURN_OK)
+            goto exit;
+        }
+      } else {
 	      cdscan = scan;
 	    }
-	}
+	  }
 
-      trunflag = (yl==0 || yl==h-1)? SEP_OBJ_TRUNC: 0;
+    trunflag = (yl==0 || yl==h-1)? SEP_OBJ_TRUNC: 0;
 
-      for (xl=0; xl<=w; xl++)
-	{
-	  if (xl == w)
-	    cdnewsymbol = -BIG;
-	  else
-	    cdnewsymbol = cdscan[xl];
+    for (xl=0; xl<=w; xl++) {
 
-	  newmarker = marker[xl];  /* marker at this pixel */
-	  marker[xl] = 0;
+      if (xl == w)
+        cdnewsymbol = -BIG;
+      else
+        cdnewsymbol = cdscan[xl];
 
-	  curpixinfo.flag = trunflag;
+	    newmarker = marker[xl];  /* marker at this pixel */
+	    marker[xl] = 0;
 
-          /* set pixel variance/noise based on noise array */
-          if (isvarthresh) {
-            if (xl == w || yl == h) {
-              pixsig = pixvar = 0.0;
-            }
-            else if (image->noise_type == SEP_NOISE_VAR) {
-              pixvar = wscan[xl];
-              pixsig = sqrt(pixvar);
-            }
-            else if (image->noise_type == SEP_NOISE_STDDEV) {
-              pixsig = wscan[xl];
-              pixvar = pixsig * pixsig;
-            }
-            else {
-              status = UNKNOWN_NOISE_TYPE;
-              goto exit;
-            }
+	    curpixinfo.flag = trunflag;
 
-            /* set `thresh` (This is needed later, even
-             * if filter_type is SEP_FILTER_MATCHED */
-            thresh = relthresh * pixsig;
-          }
+      /* set pixel variance/noise based on noise array */
+      if (isvarthresh) {
+        if (xl == w || yl == h) {
+          pixsig = pixvar = 0.0;
+        }
+        else if (image->noise_type == SEP_NOISE_VAR) {
+          pixvar = wscan[xl];
+          pixsig = sqrt(pixvar);
+        }
+        else if (image->noise_type == SEP_NOISE_STDDEV) {
+          pixsig = wscan[xl];
+          pixvar = pixsig * pixsig;
+        }
+        else {
+          status = UNKNOWN_NOISE_TYPE;
+          goto exit;
+        }
 
-          /* luflag: is pixel above thresh (Y/N)? */
-          /* First check if segmap exists */
+        /* set `thresh` (This is needed later, even
+          * if filter_type is SEP_FILTER_MATCHED */
+        thresh = relthresh * pixsig;
+      }
+
+      /* luflag: is pixel above thresh (Y/N)? */
+      /* First check if segmap exists */
       if (image->segmap) {
         if (sscan[xl]>0) {
           if (xl == 0 || xl == w - 1)
@@ -511,289 +501,237 @@ int sep_extract(const sep_image *image, float thresh, int thresh_type,
           prevpix = 0;
           for (ididx=0; ididx<numids; ididx++) {
             if (image->segids[ididx]==(int)sscan[xl]) {
-              // printf("\nx=%d, y=%d", xl, yl);
-              // printf("\nCurrent prevpix=%ld, ", prevpix);
+
               prevpix += idinfo[ididx].pixnb;
-              // printf("new prevpix: %ld, ", prevpix);
               pixt = pixel + prevpix*plistsize;
-              // printf("found pixt, ");
 
               PLIST(pixt, x) = xl;
               PLIST(pixt, y) = yl;
               PLIST(pixt, value) = scan[xl];
-              if (PLISTEXIST(cdvalue))
+              if (PLISTEXIST(cdvalue)) {
                 PLISTPIX(pixt, cdvalue) = cdnewsymbol;
-              if (PLISTEXIST(var))
+              };
+              if (PLISTEXIST(var)) {
                 PLISTPIX(pixt, var) = pixvar;
-              if (PLISTEXIST(thresh))
+              };
+              if (PLISTEXIST(thresh)) {
                 PLISTPIX(pixt, thresh) = thresh;
-              // printf("\nnextpix=%d", PLIST(pixt, nextpix));
-
-              // printf("Finished plist edits");
+              };
               
               if (idinfo[ididx].pixnb == 0) {
-                // printf("\nFirst pixel, ididx=%d, ", ididx);
-                fflush(stdout);
                 idinfo[ididx].firstpix = prevpix*plistsize;
                 idinfo[ididx].pixnb = 1;
-                // printf("pixnb=%ld, ", idinfo[ididx].pixnb);
-                fflush(stdout);
-              } else if (idinfo[ididx].pixnb == image->idcounts[ididx]-1) {
-                // printf("\nLast pixel, ididx=%d, ", ididx);
-                fflush(stdout);
+              } 
+              else if (idinfo[ididx].pixnb == image->idcounts[ididx]-1) {
                 idinfo[ididx].pixnb++;
                 idinfo[ididx].lastpix = prevpix*plistsize;
                 PLIST(pixt, nextpix) = -1;
-                // printf("pixnb=%ld, ", idinfo[ididx].pixnb);
-                fflush(stdout);
               } else {
-                // printf("\nAdding pixel, ididx=%d, ", ididx);
-                fflush(stdout);
-                // idinfo[ididx].pixptr[idinfo[ididx].pixnb] = prevpix;
                 idinfo[ididx].pixnb++;
-                // printf("pixnb=%ld, ", idinfo[ididx].pixnb);
-                fflush(stdout);
               };
               break;
             } else {
               prevpix += image->idcounts[ididx];
             }
           }
-
-          // pixt = pixel + (cn = freeinfo.firstpix);
-          // freeinfo.firstpix = PLIST(pixt, nextpix);
-          // // // printf("fp: %d, ", freeinfo.firstpix);
-          // curpixinfo.lastpix = curpixinfo.firstpix = cn;
-
-          
-          
-          
-
         }
       } else {
 
-        
-          if (filter_type == SEP_FILTER_MATCHED)
-            luflag = ((xl != w) && (sigscan[xl] > relthresh))? 1: 0;
-          else
-            luflag = cdnewsymbol > thresh? 1: 0;
+        if (filter_type == SEP_FILTER_MATCHED)
+          luflag = ((xl != w) && (sigscan[xl] > relthresh))? 1: 0;
+        else
+          luflag = cdnewsymbol > thresh? 1: 0;
 
-	  if (luflag)
-	    {
-	      /* flag the current object if we're near the image bounds */
-	      if (xl==0 || xl==w-1)
-		curpixinfo.flag |= SEP_OBJ_TRUNC;
+	      if (luflag) {
+          /* flag the current object if we're near the image bounds */
+          if (xl==0 || xl==w-1) {
+		        curpixinfo.flag |= SEP_OBJ_TRUNC;
+          };
 
-	      /* point pixt to first free pixel in pixel list */
-	      /* and increment the "first free pixel" */
-	      pixt = pixel + (cn=freeinfo.firstpix);
-	      freeinfo.firstpix = PLIST(pixt, nextpix);
-	      curpixinfo.lastpix = curpixinfo.firstpix = cn;
+          /* point pixt to first free pixel in pixel list */
+          /* and increment the "first free pixel" */
+          pixt = pixel + (cn=freeinfo.firstpix);
+          freeinfo.firstpix = PLIST(pixt, nextpix);
+          curpixinfo.lastpix = curpixinfo.firstpix = cn;
 
-	      /* set values for the new pixel */
-	      PLIST(pixt, nextpix) = -1;
-	      PLIST(pixt, x) = xl;
-	      PLIST(pixt, y) = yl;
-	      PLIST(pixt, value) = scan[xl];
-	      if (PLISTEXIST(cdvalue))
-		PLISTPIX(pixt, cdvalue) = cdnewsymbol;
-	      if (PLISTEXIST(var))
-		PLISTPIX(pixt, var) = pixvar;
-	      if (PLISTEXIST(thresh))
-		PLISTPIX(pixt, thresh) = thresh;
+          /* set values for the new pixel */
+          PLIST(pixt, nextpix) = -1;
+          PLIST(pixt, x) = xl;
+          PLIST(pixt, y) = yl;
+          PLIST(pixt, value) = scan[xl];
+          if (PLISTEXIST(cdvalue)) {
+            PLISTPIX(pixt, cdvalue) = cdnewsymbol;
+          };
+          if (PLISTEXIST(var)) {
+            PLISTPIX(pixt, var) = pixvar;
+          };
+          if (PLISTEXIST(thresh)) {
+            PLISTPIX(pixt, thresh) = thresh;
+          };
 
-	      /* Check if we have run out of free pixels in objlist.plist */
-	      if (freeinfo.firstpix==freeinfo.lastpix)
-		{
-		  status = PIXSTACK_FULL;
-		  sprintf(errtext,
-			  "The limit of %d active object pixels over the "
-			  "detection threshold was reached. Check that "
-			  "the image is background subtracted and the "
-			  "detection threshold is not too low. If you "
-                          "need to increase the limit, use "
-                          "set_extract_pixstack.",
-			  (int)mem_pixstack);
-		  put_errdetail(errtext);
-		  goto exit;
+	        /* Check if we have run out of free pixels in objlist.plist */
+	        if (freeinfo.firstpix==freeinfo.lastpix) {
+            status = PIXSTACK_FULL;
+            sprintf(errtext,
+              "The limit of %d active object pixels over the "
+              "detection threshold was reached. Check that "
+              "the image is background subtracted and the "
+              "detection threshold is not too low. If you "
+                                "need to increase the limit, use "
+                                "set_extract_pixstack.",
+              (int)mem_pixstack);
+            put_errdetail(errtext);
+            goto exit;
 
-		  /* The code in the rest of this block increases the
-		   * stack size as needed. Currently, it is never
-		   * executed. This is because it isn't clear that
-		   * this is a good idea: most times when the stack
-		   * overflows it is due to user error: too-low
-		   * threshold or image not background subtracted. */
+            /* The code in the rest of this block increases the
+            * stack size as needed. Currently, it is never
+            * executed. This is because it isn't clear that
+            * this is a good idea: most times when the stack
+            * overflows it is due to user error: too-low
+            * threshold or image not background subtracted. */
 
-		  /* increase the stack size */
-		  oldnposize = nposize;
- 		  mem_pixstack = (int)(mem_pixstack * 2);
-		  nposize = mem_pixstack * plistsize;
-		  pixel = realloc(pixel, nposize);
-		  objlist.plist = pixel;
-		  if (!pixel)
-		    {
-		      status = MEMORY_ALLOC_ERROR;
-		      goto exit;
-		    }
+            /* increase the stack size */
+            oldnposize = nposize;
+            mem_pixstack = (int)(mem_pixstack * 2);
+            nposize = mem_pixstack * plistsize;
+            pixel = realloc(pixel, nposize);
+            objlist.plist = pixel;
+            if (!pixel) {
+              status = MEMORY_ALLOC_ERROR;
+              goto exit;
+            }
 
-		  /* set next free pixel to the start of the new block
-		   * and link up all the pixels in the new block */
-		  PLIST(pixel+freeinfo.firstpix, nextpix) = oldnposize;
-		  pixt = pixel + oldnposize;
-		  for (i=oldnposize + plistsize; i<nposize;
-		       i += plistsize, pixt += plistsize)
-		    PLIST(pixt, nextpix) = i;
-		  PLIST(pixt, nextpix) = -1;
+            /* set next free pixel to the start of the new block
+            * and link up all the pixels in the new block */
+            PLIST(pixel+freeinfo.firstpix, nextpix) = oldnposize;
+            pixt = pixel + oldnposize;
+            for (i=oldnposize + plistsize; i<nposize;
+                i += plistsize, pixt += plistsize)
+              PLIST(pixt, nextpix) = i;
+            PLIST(pixt, nextpix) = -1;
 
-		  /* last free pixel is now at the end of the new block */
-		  freeinfo.lastpix = nposize - plistsize;
-		}
-	      /*------------------------------------------------------------*/
+            /* last free pixel is now at the end of the new block */
+            freeinfo.lastpix = nposize - plistsize;
+          }
+          /*------------------------------------------------------------*/
 
-	      /* if the current status on this line is not already OBJECT... */
-	      /* start segment */
-	      if (cs != OBJECT)
-		{
-		  cs = OBJECT;
-		  if (ps == OBJECT)
-		    {
-		      if (start[co] == UNKNOWN)
-			{
-			  marker[xl] = 'S';
-			  start[co] = xl;
-			}
-		      else
-			marker[xl] = 's';
-		    }
-		  else
-		    {
-		      psstack[pstop++] = ps;
-		      marker[xl] = 'S';
-		      start[++co] = xl;
-		      ps = COMPLETE;
-		      info[co] = initinfo;
-		    }
-		}
+          /* if the current status on this line is not already OBJECT... */
+          /* start segment */
+          if (cs != OBJECT) {
+            cs = OBJECT;
+            if (ps == OBJECT) {
+              if (start[co] == UNKNOWN) {
+                marker[xl] = 'S';
+                start[co] = xl;
+              } else {
+                marker[xl] = 's';
+              }
+            } else {
+              psstack[pstop++] = ps;
+              marker[xl] = 'S';
+              start[++co] = xl;
+              ps = COMPLETE;
+              info[co] = initinfo;
+            }
+		      }
 
-	    } /* closes if pixel above threshold */
+	      } /* closes if pixel above threshold */
 
-	  /* process new marker ---------------------------------------------*/
-	  /* newmarker is marker[ ] at this pixel position before we got to
-	     it. We'll only enter this if marker[ ] was set on a previous
-	     loop iteration.   */
-	  if (newmarker)
-	    {
-	      if (newmarker == 'S')
-		{
-		  psstack[pstop++] = ps;
-		  if (cs == NONOBJECT)
-		    {
-		      psstack[pstop++] = COMPLETE;
-		      info[++co] = store[xl];
-		      start[co] = UNKNOWN;
-		    }
-		  else
-		    update(&info[co], &store[xl], pixel);
-		  ps = OBJECT;
-		}
+        /* process new marker ---------------------------------------------*/
+        /* newmarker is marker[ ] at this pixel position before we got to
+          it. We'll only enter this if marker[ ] was set on a previous
+          loop iteration.   */
+        if (newmarker) {
 
-	      else if (newmarker == 's')
-		{
-		  if ((cs == OBJECT) && (ps == COMPLETE))
-		    {
-		      pstop--;
-		      xl2 = start[co];
-		      update (&info[co-1],&info[co], pixel);
-		      if (start[--co] == UNKNOWN)
-			start[co] = xl2;
-		      else
-			marker[xl2] = 's';
-		    }
-		  ps = OBJECT;
-		}
+          if (newmarker == 'S') {
+		        psstack[pstop++] = ps;
+		        if (cs == NONOBJECT) {
+              psstack[pstop++] = COMPLETE;
+              info[++co] = store[xl];
+              start[co] = UNKNOWN;
+            } else {
+		          update(&info[co], &store[xl], pixel);
+            }
+		        ps = OBJECT;
+		      } else if (newmarker == 's') {
+		        if ((cs == OBJECT) && (ps == COMPLETE)) {
+		          pstop--;
+		          xl2 = start[co];
+		          update (&info[co-1],&info[co], pixel);
+		          if (start[--co] == UNKNOWN) {
+			          start[co] = xl2;
+              } else {
+			          marker[xl2] = 's';
+              }
+		        }
+		        ps = OBJECT;
+		      } else if (newmarker == 'f') {
+		        ps = INCOMPLETE;
+          } else if (newmarker == 'F') {
+            ps = psstack[--pstop];
+            if ((cs == NONOBJECT) && (ps == COMPLETE)) {
+              if (start[co] == UNKNOWN) {
+			          if ((int)info[co].pixnb >= minarea) {
+			            /* update threshold before object is processed */
+			            objlist.thresh = thresh;
 
-	      else if (newmarker == 'f')
-		ps = INCOMPLETE;
+			            status = sortit(&info[co], &objlist, minarea,
+                                  finalobjlist, deblend_nthresh,
+                                  deblend_cont,
+                                  image->gain, &deblendctx);
 
-	      else if (newmarker == 'F')
-		{
-		  ps = psstack[--pstop];
-		  if ((cs == NONOBJECT) && (ps == COMPLETE))
-		    {
-		      if (start[co] == UNKNOWN)
-			{
-			  if ((int)info[co].pixnb >= minarea)
-			    {
-			      /* update threshold before object is processed */
-			      objlist.thresh = thresh;
+                  if (status != RETURN_OK) {
+                    goto exit;
+                  };
+			          }
 
-			      status = sortit(&info[co], &objlist, minarea,
-					      finalobjlist,
-					      deblend_nthresh,deblend_cont,
-                                              image->gain, &deblendctx);
-			      if (status != RETURN_OK)
-				goto exit;
-			    }
+                /* free the chain-list */
+                PLIST(pixel+info[co].lastpix, nextpix) = freeinfo.firstpix;
+                freeinfo.firstpix = info[co].firstpix;
+			        } else {
+                marker[end[co]] = 'F';
+                store[start[co]] = info[co];
+              }
+              co--;
+              ps = psstack[--pstop];
+		        }
+		      }
+	      }
+	      /* end of if (newmarker) ------------------------------------------*/
 
-			  /* free the chain-list */
-			  PLIST(pixel+info[co].lastpix, nextpix) =
-			    freeinfo.firstpix;
-			  freeinfo.firstpix = info[co].firstpix;
-			}
-		      else
-			{
-			  marker[end[co]] = 'F';
-			  store[start[co]] = info[co];
-			}
-		      co--;
-		      ps = psstack[--pstop];
-		    }
-		}
-	    }
-	  /* end of if (newmarker) ------------------------------------------*/
-
-	  /* update the info or end segment */
-	  if (luflag)
-	    {
-	      update(&info[co], &curpixinfo, pixel);
-	    }
-	  else if (cs == OBJECT)
-	    {
-	      cs = NONOBJECT;
-	      if (ps != COMPLETE)
-		{
-		  marker[xl] = 'f';
-		  end[co] = xl;
-		}
-	      else
-		{
-		  ps = psstack[--pstop];
-		  marker[xl] = 'F';
-		  store[start[co]] = info[co];
-		  co--;
-		}
-	    }
+        /* update the info or end segment */
+        if (luflag) {
+          update(&info[co], &curpixinfo, pixel);
+        } else if (cs == OBJECT) {
+          cs = NONOBJECT;
+          if (ps != COMPLETE) {
+            marker[xl] = 'f';
+            end[co] = xl;
+          } else {
+            ps = psstack[--pstop];
+            marker[xl] = 'F';
+            store[start[co]] = info[co];
+            co--;
+          }
+	      }
       }
+	  } /*------------ End of the loop over the x's -----------------------*/
+  } /*---------------- End of the loop over the y's -----------------------*/
 
-	} /*------------ End of the loop over the x's -----------------------*/
-
-    } /*---------------- End of the loop over the y's -----------------------*/
   if (image->segmap) {
     for (i = 0; i < numids; i++) {
       status = segsortit(&idinfo[i], &objlist, finalobjlist, image->gain);
     }
   } else {
-  /* convert `finalobjlist` to an array of `sepobj` structs */
-  /* if cleaning, see which objects "survive" cleaning. */
-  if (clean_flag)
-    {
+    /* convert `finalobjlist` to an array of `sepobj` structs */
+    /* if cleaning, see which objects "survive" cleaning. */
+    if (clean_flag) {
       /* Calculate mthresh for all objects in the list (needed for cleaning) */
-      for (i=0; i<finalobjlist->nobj; i++)
-	{
-	  status = analysemthresh(i, finalobjlist, minarea, thresh);
-	  if (status != RETURN_OK)
-	    goto exit;
-	}
+      for (i=0; i<finalobjlist->nobj; i++) {
+	      status = analysemthresh(i, finalobjlist, minarea, thresh);
+        if (status != RETURN_OK)
+          goto exit;
+      }
 
       QMALLOC(survives, int, finalobjlist->nobj, status);
       clean(finalobjlist, clean_param, survives);
@@ -827,22 +765,20 @@ int sep_extract(const sep_image *image, float thresh, int thresh_type,
     arraybuffer_free(&mbuf);
   if (conv)
     free(convnorm);
-  if (filter_type == SEP_FILTER_MATCHED)
-    {
-      free(sigscan);
-      free(workscan);
-    }
+  if (filter_type == SEP_FILTER_MATCHED) {
+    free(sigscan);
+    free(workscan);
+  }
 
-  if (status != RETURN_OK)
-    {
-      /* free cdscan if we didn't do it on the last `yl` line */
-      if (conv && (cdscan != dummyscan))
-        free(cdscan);
+  if (status != RETURN_OK) {
+    /* free cdscan if we didn't do it on the last `yl` line */
+    if (conv && (cdscan != dummyscan))
+      free(cdscan);
 
-      /* clean up catalog if it was allocated */
-      sep_catalog_free(cat);
-      cat = NULL;
-    }
+    /* clean up catalog if it was allocated */
+    sep_catalog_free(cat);
+    cat = NULL;
+  }
 
   *catalog = cat;
   return status;
