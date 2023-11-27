@@ -74,6 +74,9 @@ typedef struct {
   int ndtype;        /* element type of noise     */
   int mdtype;        /* element type of mask      */
   int sdtype;        /* element type of segmap    */
+  int *segids;       /* unique ids in segmap */
+  int *idcounts;     /* counts of unique ids in segmap  */
+  int numids;        /* total number of unique ids in segmap */
   int w;             /* array width               */
   int h;             /* array height              */
   double noiseval;   /* scalar noise value; used only if noise == NULL */
