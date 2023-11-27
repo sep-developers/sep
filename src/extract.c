@@ -53,9 +53,10 @@ size_t sep_get_extract_pixstack()
 }
 
 int sortit(infostruct *info, objliststruct *objlist, int minarea,
-	   objliststruct *finalobjlist,
-	   int deblend_nthresh, double deblend_mincont, double gain,
-	   deblendctx *deblendctx);
+           objliststruct *finalobjlist, int deblend_nthresh,
+           double deblend_mincont, double gain, deblendctx *deblendctx);
+int segsortit(infostruct *info, objliststruct *objlist, 
+           objliststruct *finalobjlist, double gain);
 void plistinit(int hasconv, int hasvar);
 void clean(objliststruct *objlist, double clean_param, int *survives);
 int convert_to_catalog(objliststruct *objlist, const int *survives,
@@ -71,8 +72,7 @@ void arraybuffer_free(arraybuffer *buf);
 /* initialize buffer */
 /* bufw must be less than or equal to w */
 int arraybuffer_init(arraybuffer *buf, const void *arr, int dtype, int w, int h,
-                     int bufw, int bufh)
-{
+                     int bufw, int bufh) {
   int status, yl;
   status = RETURN_OK;
 
@@ -111,8 +111,7 @@ int arraybuffer_init(arraybuffer *buf, const void *arr, int dtype, int w, int h,
 }
 
 /* read a line into the buffer at the top, shifting all lines down one */
-void arraybuffer_readline(arraybuffer *buf)
-{
+void arraybuffer_readline(arraybuffer *buf) {
   PIXTYPE *line;
   int y;
 
@@ -129,8 +128,7 @@ void arraybuffer_readline(arraybuffer *buf)
                   buf->lastline);
 }
 
-void arraybuffer_free(arraybuffer *buf)
-{
+void arraybuffer_free(arraybuffer *buf) {
   free(buf->bptr);
   buf->bptr = NULL;
 }
@@ -153,36 +151,35 @@ void arraybuffer_free(arraybuffer *buf)
  * So, this routine sets masked pixels to zero in the image buffer and
  * infinity in the noise buffer (if present). It affects the first
  */
-void apply_mask_line(arraybuffer *mbuf, arraybuffer *imbuf, arraybuffer *nbuf)
-{
+void apply_mask_line(arraybuffer *mbuf, arraybuffer *imbuf, arraybuffer *nbuf) {
   int i;
 
-  for (i=0; i<mbuf->bw; i++)
-    {
-      if (mbuf->lastline[i] > 0.0)
-        {
-          imbuf->lastline[i] = 0.0;
-          if (nbuf)
-            nbuf->lastline[i] = BIG;
-        }
+  for (i=0; i<mbuf->bw; i++) {
+    if (mbuf->lastline[i] > 0.0) {
+      imbuf->lastline[i] = 0.0;
+      if (nbuf) {
+        nbuf->lastline[i] = BIG;
+      }
     }
+  }
 }
 
 /****************************** extract **************************************/
 int sep_extract(const sep_image *image, float thresh, int thresh_type,
                 int minarea, const float *conv, int convw, int convh,
-		int filter_type, int deblend_nthresh, double deblend_cont,
-		int clean_flag, double clean_param,
-		sep_catalog **catalog)
-{
-  arraybuffer       dbuf, nbuf, mbuf;
+                int filter_type, int deblend_nthresh, double deblend_cont,
+                int clean_flag, double clean_param, sep_catalog **catalog) {
+
+  arraybuffer       dbuf, nbuf, mbuf, sbuf;
   infostruct        curpixinfo, initinfo, freeinfo;
   objliststruct     objlist;
   char              newmarker;
   size_t            mem_pixstack;
   int               nposize, oldnposize;
   int               w, h;
-  int               co, i, luflag, pstop, xl, xl2, yl, cn;
+  int               co, i, j, luflag, pstop, xl, xl2, yl, cn;
+  int               ididx, numids, totnpix;
+  long              prevpix;
   int               stacksize, convn, status;
   int               bufh;
   int               isvarthresh, isvarnoise;
@@ -195,7 +192,7 @@ int sep_extract(const sep_image *image, float thresh, int thresh_type,
   objliststruct     *finalobjlist;
   pliststruct	    *pixel, *pixt;
   char              *marker;
-  PIXTYPE           *scan, *cdscan, *wscan, *dummyscan;
+  PIXTYPE           *scan, *cdscan, *wscan, *dummyscan, *sscan;
   PIXTYPE           *sigscan, *workscan;
   float             *convnorm;
   int               *start, *end, *survives;
@@ -207,7 +204,7 @@ int sep_extract(const sep_image *image, float thresh, int thresh_type,
   status = RETURN_OK;
   pixel = NULL;
   convnorm = NULL;
-  scan = wscan = cdscan = dummyscan = NULL;
+  scan = wscan = cdscan = dummyscan = sscan = NULL;
   sigscan = workscan = NULL;
   info = NULL;
   store = NULL;
@@ -221,6 +218,8 @@ int sep_extract(const sep_image *image, float thresh, int thresh_type,
   sum = 0.0;
   w = image->w;
   h = image->h;
+  numids = (image->numids) ? image->numids : 1;
+  infostruct idinfo[numids];
   isvarthresh = 0;
   relthresh = 0.0;
   pixvar = 0.0;
@@ -230,12 +229,23 @@ int sep_extract(const sep_image *image, float thresh, int thresh_type,
 
   mem_pixstack = sep_get_extract_pixstack();
 
+  if (image->segmap) {
+    totnpix = 0;
+    for (i=0; i<numids; i++) {
+      totnpix += image->idcounts[i];
+    }
+    if (totnpix>mem_pixstack) {
+      goto exit;
+    }
+    mem_pixstack = totnpix + 1;
+  }
+
   /* seed the random number generator consistently on each call to get
    * consistent results. rand_r() is used in deblending. */
   randseed = 1;
 
   /* Noise characteristics of the image: None, scalar or variable? */
-  if (image->noise_type == SEP_NOISE_NONE) { } /* nothing to do */
+  if (image->noise_type == SEP_NOISE_NONE) {} /* nothing to do */
   else if (image->noise == NULL) {
     /* noise is constant; we can set pixel noise now. */
     if (image->noise_type == SEP_NOISE_STDDEV) {
@@ -308,6 +318,12 @@ int sep_extract(const sep_image *image, float thresh, int thresh_type,
                                 stacksize, bufh);
       if (status != RETURN_OK) goto exit;
     }
+  if (image->segmap) {
+    status =  arraybuffer_init(&sbuf, image->segmap, image->sdtype, w, h, 
+                              stacksize, bufh);
+    if (status != RETURN_OK)
+      goto exit;
+  }
 
   /* `scan` (or `wscan`) is always a pointer to the current line being
    * processed. It might be the only line in the buffer, or it might be the
@@ -321,14 +337,27 @@ int sep_extract(const sep_image *image, float thresh, int thresh_type,
   initinfo.flag = 0;
   initinfo.firstpix = initinfo.lastpix = -1;
 
-  for (xl=0; xl<stacksize; xl++)
-    {
-      marker[xl]  = 0;
-      dummyscan[xl] = -BIG;
+  if (image->segmap) {
+    sscan = sbuf.midline;
+    for (i=0; i<numids; i++) {
+      idinfo[i].pixnb = 0;
+      idinfo[i].flag = 0;
+      idinfo[i].firstpix = info[i].lastpix = -1;
     }
+  }
+
+  for (xl=0; xl<stacksize; xl++) {
+    marker[xl]  = 0;
+    dummyscan[xl] = -BIG;
+  }
 
   co = pstop = 0;
-  objlist.nobj = 1;
+  if (image->segmap) {
+    objlist.nobj = numids;
+    QMALLOC(objlist.obj, objstruct, numids, status);
+  } else {
+    objlist.nobj = 1;
+  }
   curpixinfo.pixnb = 1;
 
   /* Init finalobjlist */
@@ -340,11 +369,10 @@ int sep_extract(const sep_image *image, float thresh, int thresh_type,
 
   /* Allocate memory for the pixel list */
   plistinit((conv != NULL), (image->noise_type != SEP_NOISE_NONE));
-  if (!(pixel = objlist.plist = malloc(nposize=mem_pixstack*plistsize)))
-    {
-      status = MEMORY_ALLOC_ERROR;
-      goto exit;
-    }
+  if (!(pixel = objlist.plist = malloc(nposize=mem_pixstack*plistsize))) {
+    status = MEMORY_ALLOC_ERROR;
+    goto exit;
+  }
 
   /*----- at the beginning, "free" object fills the whole pixel list */
   freeinfo.firstpix = 0;
@@ -359,37 +387,34 @@ int sep_extract(const sep_image *image, float thresh, int thresh_type,
   if (!(conv && isvarnoise))
     filter_type = SEP_FILTER_CONV;
 
-  if (conv)
-    {
-      /* allocate memory for convolved buffers */
-      QMALLOC(cdscan, PIXTYPE, stacksize, status);
-      if (filter_type == SEP_FILTER_MATCHED)
-        {
-          QMALLOC(sigscan, PIXTYPE, stacksize, status);
-          QMALLOC(workscan, PIXTYPE, stacksize, status);
-        }
+  if (conv) {
+    /* allocate memory for convolved buffers */
+    QMALLOC(cdscan, PIXTYPE, stacksize, status);
+    if (filter_type == SEP_FILTER_MATCHED) {
+        QMALLOC(sigscan, PIXTYPE, stacksize, status);
+        QMALLOC(workscan, PIXTYPE, stacksize, status);
+      }
 
-      /* normalize the filter */
-      convn = convw * convh;
-      QMALLOC(convnorm, PIXTYPE, convn, status);
-      for (i=0; i<convn; i++)
-	sum += fabs(conv[i]);
-      for (i=0; i<convn; i++)
-	convnorm[i] = conv[i] / sum;
+    /* normalize the filter */
+    convn = convw * convh;
+    QMALLOC(convnorm, PIXTYPE, convn, status);
+    for (i=0; i<convn; i++) {
+      sum += fabs(conv[i]);
     }
+    for (i=0; i<convn; i++) {
+      convnorm[i] = conv[i] / sum;
+    }
+  }
 
   /*----- MAIN LOOP ------ */
-  for (yl=0; yl<=h; yl++)
-    {
+  for (yl=0; yl<=h; yl++) {
 
-      ps = COMPLETE;
-      cs = NONOBJECT;
+    ps = COMPLETE;
+    cs = NONOBJECT;
 
       /* Need an empty line for Lutz' algorithm to end gracely */
-      if (yl==h)
-	{
-	  if (conv)
-	    {
+      if (yl==h) {
+        if (conv) {
               free(cdscan);  // cdscan set to dummyscan below
               if (filter_type == SEP_FILTER_MATCHED)
               {
@@ -412,6 +437,9 @@ int sep_extract(const sep_image *image, float thresh, int thresh_type,
               arraybuffer_readline(&mbuf);
               apply_mask_line(&mbuf, &dbuf, (isvarnoise? &nbuf: NULL));
             }
+          if (image->segmap) {
+            arraybuffer_readline(&sbuf);
+          }
 
 	  /* filter the lines */
 	  if (conv)
@@ -474,6 +502,77 @@ int sep_extract(const sep_image *image, float thresh, int thresh_type,
           }
 
           /* luflag: is pixel above thresh (Y/N)? */
+          /* First check if segmap exists */
+      if (image->segmap) {
+        if (sscan[xl]>0) {
+          if (xl == 0 || xl == w - 1)
+            curpixinfo.flag |= SEP_OBJ_TRUNC;
+
+          prevpix = 0;
+          for (ididx=0; ididx<numids; ididx++) {
+            if (image->segids[ididx]==(int)sscan[xl]) {
+              // printf("\nx=%d, y=%d", xl, yl);
+              // printf("\nCurrent prevpix=%ld, ", prevpix);
+              prevpix += idinfo[ididx].pixnb;
+              // printf("new prevpix: %ld, ", prevpix);
+              pixt = pixel + prevpix*plistsize;
+              // printf("found pixt, ");
+
+              PLIST(pixt, x) = xl;
+              PLIST(pixt, y) = yl;
+              PLIST(pixt, value) = scan[xl];
+              if (PLISTEXIST(cdvalue))
+                PLISTPIX(pixt, cdvalue) = cdnewsymbol;
+              if (PLISTEXIST(var))
+                PLISTPIX(pixt, var) = pixvar;
+              if (PLISTEXIST(thresh))
+                PLISTPIX(pixt, thresh) = thresh;
+              // printf("\nnextpix=%d", PLIST(pixt, nextpix));
+
+              // printf("Finished plist edits");
+              
+              if (idinfo[ididx].pixnb == 0) {
+                // printf("\nFirst pixel, ididx=%d, ", ididx);
+                fflush(stdout);
+                idinfo[ididx].firstpix = prevpix*plistsize;
+                idinfo[ididx].pixnb = 1;
+                // printf("pixnb=%ld, ", idinfo[ididx].pixnb);
+                fflush(stdout);
+              } else if (idinfo[ididx].pixnb == image->idcounts[ididx]-1) {
+                // printf("\nLast pixel, ididx=%d, ", ididx);
+                fflush(stdout);
+                idinfo[ididx].pixnb++;
+                idinfo[ididx].lastpix = prevpix*plistsize;
+                PLIST(pixt, nextpix) = -1;
+                // printf("pixnb=%ld, ", idinfo[ididx].pixnb);
+                fflush(stdout);
+              } else {
+                // printf("\nAdding pixel, ididx=%d, ", ididx);
+                fflush(stdout);
+                // idinfo[ididx].pixptr[idinfo[ididx].pixnb] = prevpix;
+                idinfo[ididx].pixnb++;
+                // printf("pixnb=%ld, ", idinfo[ididx].pixnb);
+                fflush(stdout);
+              };
+              break;
+            } else {
+              prevpix += image->idcounts[ididx];
+            }
+          }
+
+          // pixt = pixel + (cn = freeinfo.firstpix);
+          // freeinfo.firstpix = PLIST(pixt, nextpix);
+          // // // printf("fp: %d, ", freeinfo.firstpix);
+          // curpixinfo.lastpix = curpixinfo.firstpix = cn;
+
+          
+          
+          
+
+        }
+      } else {
+
+        
           if (filter_type == SEP_FILTER_MATCHED)
             luflag = ((xl != w) && (sigscan[xl] > relthresh))? 1: 0;
           else
@@ -674,11 +773,16 @@ int sep_extract(const sep_image *image, float thresh, int thresh_type,
 		  co--;
 		}
 	    }
+      }
 
 	} /*------------ End of the loop over the x's -----------------------*/
 
     } /*---------------- End of the loop over the y's -----------------------*/
-
+  if (image->segmap) {
+    for (i = 0; i < numids; i++) {
+      status = segsortit(&idinfo[i], &objlist, finalobjlist, image->gain);
+    }
+  } else {
   /* convert `finalobjlist` to an array of `sepobj` structs */
   /* if cleaning, see which objects "survive" cleaning. */
   if (clean_flag)
@@ -694,7 +798,7 @@ int sep_extract(const sep_image *image, float thresh, int thresh_type,
       QMALLOC(survives, int, finalobjlist->nobj, status);
       clean(finalobjlist, clean_param, survives);
     }
-
+  }
   /* convert to output catalog */
   QCALLOC(cat, sep_catalog, 1, status);
   status = convert_to_catalog(finalobjlist, survives, cat, w, 1);
@@ -744,6 +848,36 @@ int sep_extract(const sep_image *image, float thresh, int thresh_type,
   return status;
 }
 
+int segsortit(infostruct *info, objliststruct *objlist,
+           objliststruct *finalobjlist, double gain) {
+  objliststruct objlistout, *objlist2;
+  objstruct obj;
+  int i, status;
+
+  status = RETURN_OK;
+
+  /*----- Allocate memory to store object data */
+  objlist->obj = &obj;
+  objlist->nobj = 1;
+
+  memset(&obj, 0, (size_t)sizeof(objstruct));
+  objlist->npix = info->pixnb;
+  obj.firstpix = info->firstpix;
+  obj.lastpix = info->lastpix;
+  obj.flag = info->flag;
+
+  obj.thresh = PLISTPIX(objlist->plist+info->lastpix, thresh);
+
+  analyse(0, objlist, 1, gain);
+
+  status = addobjdeep(0, objlist, finalobjlist);
+
+  if (status != RETURN_OK)
+    goto exit;
+
+exit:
+  return status;
+}
 
 /********************************* sortit ************************************/
 /*
