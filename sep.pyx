@@ -69,6 +69,9 @@ cdef extern from "sep.h":
         int ndtype
         int mdtype
         int sdtype
+        int *segids
+        int *idcounts
+        int numids
         int w
         int h
         double noiseval
@@ -301,6 +304,7 @@ cdef int _parse_arrays(np.ndarray data, err, var, mask, segmap,
     im.noise = NULL
     im.mask = NULL
     im.segmap = NULL
+    im.numids = 0
     im.ndtype = 0
     im.mdtype = 0
     im.noiseval = 0.0
@@ -592,7 +596,7 @@ def extract(np.ndarray data not None, float thresh, err=None, var=None,
             np.ndarray filter_kernel=default_kernel, filter_type='matched',
             int deblend_nthresh=32, double deblend_cont=0.005,
             bint clean=True, double clean_param=1.0,
-            segmentation_map=False):
+            segmentation_map=None):
     """extract(data, thresh, err=None, mask=None, minarea=5,
                filter_kernel=default_kernel, filter_type='matched',
                deblend_nthresh=32, deblend_cont=0.005, clean=True,
@@ -697,9 +701,26 @@ def extract(np.ndarray data not None, float thresh, err=None, var=None,
     cdef np.int32_t *segmap_ptr
     cdef int *objpix
     cdef sep_image im
+    cdef np.int32_t[:] idbuf, countbuf
 
     # parse arrays
-    _parse_arrays(data, err, var, mask, None, &im)
+    if type(segmentation_map) is np.ndarray:
+        _parse_arrays(data, err, var, mask, segmentation_map, &im)
+
+        ids, counts = np.unique(segmentation_map, return_counts=True)
+
+        # Remove non-object IDs:
+        filter_ids = ids>0
+        segids = np.ascontiguousarray(ids[filter_ids].astype(dtype=np.int32))
+        idcounts = np.ascontiguousarray(counts[filter_ids].astype(dtype=np.int32))
+
+        idbuf = segids.view(dtype=np.int32)
+        countbuf = idcounts.view(dtype=np.int32)
+        im.segids = <int*>&idbuf[0]
+        im.idcounts = <int*>&countbuf[0]
+        im.numids = len(segids)
+    else:
+        _parse_arrays(data, err, var, mask, None, &im)
     im.maskthresh = maskthresh
     if gain is not None:
         im.gain = gain
@@ -802,7 +823,7 @@ def extract(np.ndarray data not None, float thresh, err=None, var=None,
         result['flag'][i] = catalog.flag[i]
 
     # construct a segmentation map, if it was requested.
-    if segmentation_map:
+    if type(segmentation_map) is np.ndarray or segmentation_map:
         # Note: We have to write out `(data.shape[0], data.shape[1])` because
         # because Cython turns `data.shape` later into an int pointer when
         # the function argument is typed as np.ndarray.
@@ -817,7 +838,7 @@ def extract(np.ndarray data not None, float thresh, err=None, var=None,
     # Free the C catalog
     sep_catalog_free(catalog)
 
-    if segmentation_map:
+    if type(segmentation_map) is np.ndarray or segmentation_map:
         return result, segmap
     else:
         return result
