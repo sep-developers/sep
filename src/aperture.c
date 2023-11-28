@@ -103,14 +103,14 @@ void sep_ellipse_coeffs(double a, double b, double theta,
  * parameters x, y, r. xmin is inclusive and xmax is exclusive.
  * Ensures that box is within image bound and sets a flag if it is not.
  */
-static void boxextent(double x, double y, double rx, double ry, int w, int h,
-                      int *xmin, int *xmax, int *ymin, int *ymax,
+static void boxextent(double x, double y, double rx, double ry, int64_t w, int64_t h,
+                      int64_t *xmin, int64_t *xmax, int64_t *ymin, int64_t *ymax,
                       short *flag)
 {
-  *xmin = (int)(x - rx + 0.5);
-  *xmax = (int)(x + rx + 1.4999999);
-  *ymin = (int)(y - ry + 0.5);
-  *ymax = (int)(y + ry + 1.4999999);
+  *xmin = (int64_t)(x - rx + 0.5);
+  *xmax = (int64_t)(x + rx + 1.4999999);
+  *ymin = (int64_t)(y - ry + 0.5);
+  *ymax = (int64_t)(y + ry + 1.4999999);
   if (*xmin < 0)
     {
       *xmin = 0;
@@ -136,8 +136,8 @@ static void boxextent(double x, double y, double rx, double ry, int w, int h,
 
 static void boxextent_ellipse(double x, double y,
                               double cxx, double cyy, double cxy, double r,
-                              int w, int h,
-                              int *xmin, int *xmax, int *ymin, int *ymax,
+                              int64_t w, int64_t h,
+                              int64_t *xmin, int64_t *xmax, int64_t *ymin, int64_t *ymax,
                               short *flag)
 {
   double dxlim, dylim;
@@ -326,7 +326,7 @@ static void oversamp_ann_ellipse(double r, double b, double *r_in2,
  * that it doesn't quite make sense to use aperture.i.
  */
 int sep_sum_circann_multi(const sep_image *im,
-                          double x, double y, double rmax, int n,
+                          double x, double y, double rmax, int64_t n,
                           int id,
                           int subpix,
                           short inflag,
@@ -335,13 +335,13 @@ int sep_sum_circann_multi(const sep_image *im,
 {
   PIXTYPE pix, varpix;
   double dx, dy, dx1, dy2, offset, scale, scale2, tmp, rpix2;
-  int ix, iy, xmin, xmax, ymin, ymax, sx, sy, status, size, esize, msize, ssize;
-  long pos;
+  int64_t ix, iy, xmin, xmax, ymin, ymax, sx, sy, size, esize, msize, ssize, pos;
+  int status;
   short errisarray, errisstd;
   const BYTE *datat, *errort, *maskt, *segt;
   converter convert, econvert, mconvert, sconvert;
   double rpix, r_out, r_out2, d, prevbinmargin, nextbinmargin, step, stepdens;
-  int j, ismasked;
+  int64_t j, ismasked;
 
   /* input checks */
   if (rmax < 0.0 || n < 1)
@@ -487,7 +487,7 @@ int sep_sum_circann_multi(const sep_image *im,
                       dy2 = dy*dy;
                       for (sx=subpix; sx--; dx1+=scale)
                         {
-                          j = (int)(sqrt(dx1*dx1+dy2)*stepdens);
+                          j = (int64_t)(sqrt(dx1*dx1+dy2)*stepdens);
                           if (j < n)
                             {
                               if (ismasked)
@@ -505,7 +505,7 @@ int sep_sum_circann_multi(const sep_image *im,
               else
                 /* pixel not close to bin boundary */
                 {
-                  j = (int)(rpix*stepdens);
+                  j = (int64_t)(rpix*stepdens);
                   if (j < n)
                     {
                       if (ismasked)
@@ -558,10 +558,10 @@ int sep_sum_circann_multi(const sep_image *im,
 
 
 /* for use in flux_radius */
-static double inverse(double xmax, const double *y, int n, double ytarg)
+static double inverse(double xmax, const double *y, int64_t n, double ytarg)
 {
   double step;
-  int i;
+  int64_t i;
 
   step = xmax/n;
   i = 0;
@@ -586,11 +586,11 @@ static double inverse(double xmax, const double *y, int n, double ytarg)
 int sep_flux_radius(const sep_image *im,
                     double x, double y, double rmax, int id,
                     int subpix, short inflag,
-                    const double *fluxtot, const double *fluxfrac, int n, double *r,
+                    const double *fluxtot, const double *fluxfrac, int64_t n, double *r,
                     short *flag)
 {
   int status;
-  int i;
+  int64_t i;
   double f;
   double sumbuf[FLUX_RADIUS_BUFSIZE] = {0.};
   double sumvarbuf[FLUX_RADIUS_BUFSIZE];
@@ -625,8 +625,8 @@ int sep_kron_radius(const sep_image *im, double x, double y,
 {
   float pix;
   double r1, v1, r2, area, rpix2, dx, dy;
-  int ix, iy, xmin, xmax, ymin, ymax, status, size, msize, ssize;
-  long pos;
+  int64_t ix, iy, xmin, xmax, ymin, ymax, pos, size, msize, ssize;
+  int status;
   int ismasked;
 
   const BYTE *datat, *maskt, *segt;
@@ -739,12 +739,12 @@ int sep_kron_radius(const sep_image *im, double x, double y,
 
 
 /* set array values within an ellipse (uc = unsigned char array) */
-void sep_set_ellipse(unsigned char *arr, int w, int h,
+void sep_set_ellipse(unsigned char *arr, int64_t w, int64_t h,
                      double x, double y, double cxx, double cyy, double cxy,
                      double r, unsigned char val)
 {
   unsigned char *arrt;
-  int xmin, xmax, ymin, ymax, xi, yi;
+  int64_t xmin, xmax, ymin, ymax, xi, yi;
   double r2, dx, dy, dy2;
   short flag; /* not actually used, but input to boxextent */
 
@@ -788,8 +788,8 @@ int sep_windowed(const sep_image *im,
   double maskarea, maskweight, maskdxpos, maskdypos;
   double r, tv, twv, sigtv, totarea, overlap, rpix2, invtwosig2;
   double wpix;
-  int i, ix, iy, xmin, xmax, ymin, ymax, sx, sy, status, size, esize, msize;
-  long pos;
+  int64_t i, ix, iy, xmin, xmax, ymin, ymax, sx, sy, pos, size, esize, msize;
+  int status;
   short errisarray, errisstd;
   const BYTE *datat, *errort, *maskt;
   converter convert, econvert, mconvert;

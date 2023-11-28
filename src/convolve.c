@@ -36,10 +36,10 @@ f* GNU Lesser General Public License for more details.
  * convw, convh : width and height of conv
  * buf : output convolved line (buf->dw elements long)
  */
-int convolve(arraybuffer *buf, int y, const float *conv, int convw, int convh,
-             PIXTYPE *out)
+int convolve(arraybuffer *buf, int64_t y, const float *conv, 
+             int64_t convw, int64_t convh, PIXTYPE *out)
 {
-  int convw2, convn, cx, cy, i, dcx, y0;
+  int64_t convw2, convn, cx, cy, i, dcx, y0;
   PIXTYPE *line;    /* current line in input buffer */
   PIXTYPE *outend;  /* end of output buffer */
   PIXTYPE *src, *dst, *dstend;
@@ -120,11 +120,11 @@ int convolve(arraybuffer *buf, int y, const float *conv, int convw, int convh,
  * imbuf and nbuf should have same data dimensions and be on the same line
  * (their `yoff` fields should be the same).
  */
-int matched_filter(arraybuffer *imbuf, arraybuffer *nbuf, int y,
-                   const float *conv, int convw, int convh,
+int matched_filter(arraybuffer *imbuf, arraybuffer *nbuf, int64_t y,
+                   const float *conv, int64_t convw, int64_t convh,
                    PIXTYPE *work, PIXTYPE *out, int noise_type)
 {
-  int convw2, convn, cx, cy, i, dcx, y0;
+  int64_t convw2, convn, cx, cy, i, dcx, y0;
   PIXTYPE imval, varval;
   PIXTYPE *imline, *nline;    /* current line in input buffer */
   PIXTYPE *outend;            /* end of output buffer */

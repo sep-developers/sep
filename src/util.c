@@ -24,7 +24,7 @@
 
 #define DETAILSIZE 512
 
-const char *const sep_version_string = "1.2.0";
+const char *const sep_version_string = "1.3.0dev1";
 static _Thread_local char _errdetail_buffer[DETAILSIZE] = "";
 
 /****************************************************************************/
@@ -42,7 +42,7 @@ PIXTYPE convert_flt(const void *ptr)
 
 PIXTYPE convert_int(const void *ptr)
 {
-  return *(const int *)ptr;
+  return *(const int64_t *)ptr;
 }
 
 PIXTYPE convert_byt(const void *ptr)
@@ -51,7 +51,7 @@ PIXTYPE convert_byt(const void *ptr)
 }
 
 /* return the correct converter depending on the datatype code */
-int get_converter(int dtype, converter *f, int *size)
+int get_converter(int dtype, converter *f, int64_t *size)
 {
   int status = RETURN_OK;
 
@@ -85,39 +85,39 @@ int get_converter(int dtype, converter *f, int *size)
 }
 
 /* array conversions */
-void convert_array_flt(const void *ptr, int n, PIXTYPE *target)
+void convert_array_flt(const void *ptr, int64_t n, PIXTYPE *target)
 {
   const float *source = ptr;
-  int i;
+  int64_t i;
   for (i=0; i<n; i++, source++)
     target[i] = *source;
 }
 
-void convert_array_dbl(const void *ptr, int n, PIXTYPE *target)
+void convert_array_dbl(const void *ptr, int64_t n, PIXTYPE *target)
 {
   const double *source = ptr;
-  int i;
+  int64_t i;
   for (i=0; i<n; i++, source++)
     target[i] = *source;
 }
 
-void convert_array_int(const void *ptr, int n, PIXTYPE *target)
+void convert_array_int(const void *ptr, int64_t n, PIXTYPE *target)
 {
   const int *source = ptr;
-  int i;
+  int64_t i;
   for (i=0; i<n; i++, source++)
     target[i] = *source;
 }
 
-void convert_array_byt(const void *ptr, int n, PIXTYPE *target)
+void convert_array_byt(const void *ptr, int64_t n, PIXTYPE *target)
 {
   const BYTE *source = ptr;
-  int i;
+  int64_t i;
   for (i=0; i<n; i++, source++)
     target[i] = *source;
 }
 
-int get_array_converter(int dtype, array_converter *f, int *size)
+int get_array_converter(int dtype, array_converter *f, int64_t *size)
 {
   int status = RETURN_OK;
 
@@ -154,24 +154,24 @@ int get_array_converter(int dtype, array_converter *f, int *size)
 /****************************************************************************/
 /* Copy a float array to various sorts of arrays */
 
-void write_array_dbl(const float *ptr, int n, void *target)
+void write_array_dbl(const float *ptr, int64_t n, void *target)
 {
   double *t = target;
-  int i;
+  int64_t i;
   for (i=0; i<n; i++, ptr++)
     t[i] = (double)(*ptr);
 }
 
-void write_array_int(const float *ptr, int n, void *target)
+void write_array_int(const float *ptr, int64_t n, void *target)
 {
-  int *t = target;
-  int i;
+  int64_t *t = target;
+  int64_t i;
   for (i=0; i<n; i++, ptr++)
-    t[i] = (int)(*ptr+0.5);
+    t[i] = (int64_t)(*ptr+0.5);
 }
 
 /* return the correct writer depending on the datatype code */
-int get_array_writer(int dtype, array_writer *f, int *size)
+int get_array_writer(int dtype, array_writer *f, int64_t *size)
 {
   int status = RETURN_OK;
 
@@ -196,32 +196,32 @@ int get_array_writer(int dtype, array_writer *f, int *size)
 
 /* subtract a float array from arrays of various types */
 
-void subtract_array_dbl(const float *ptr, int n, void *target)
+void subtract_array_dbl(const float *ptr, int64_t n, void *target)
 {
   double *t = target;
-  int i;
+  int64_t i;
   for (i=0; i<n; i++, ptr++)
     t[i] -= (double)(*ptr);
 }
 
-void subtract_array_flt(const float *ptr, int n, void *target)
+void subtract_array_flt(const float *ptr, int64_t n, void *target)
 {
   float *t = target;
-  int i;
+  int64_t i;
   for (i=0; i<n; i++, ptr++)
     t[i] -= *ptr;
 }
 
-void subtract_array_int(const float *ptr, int n, void *target)
+void subtract_array_int(const float *ptr, int64_t n, void *target)
 {
-  int *t = target;
-  int i;
+  int64_t *t = target;
+  int64_t i;
   for (i=0; i<n; i++, ptr++)
-    t[i] -= (int)(*ptr+0.5);
+    t[i] -= (int64_t)(*ptr+0.5);
 }
 
 /* return the correct subtractor depending on the datatype code */
-int get_array_subtractor(int dtype, array_writer *f, int *size)
+int get_array_subtractor(int dtype, array_writer *f, int64_t *size)
 {
   int status = RETURN_OK;
   char errtext[80];
@@ -326,7 +326,7 @@ static int fqcmp(const void *p1, const void *p2)
   return f1>f2? 1 : (f1<f2? -1 : 0);
 }
 
-float fqmedian(float *ra, int n)
+float fqmedian(float *ra, int64_t n)
 /* Compute median of an array of floats.
  *
  * WARNING: input data are reordered! */

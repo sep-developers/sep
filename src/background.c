@@ -35,41 +35,42 @@
 /* Background info in a single mesh*/
 typedef struct {
   float	 mode, mean, sigma;	/* Background mode, mean and sigma */
-  LONG	 *histo;	       	/* Pointer to a histogram */
+  int64_t	 *histo;	       	/* Pointer to a histogram */
   int	 nlevels;		/* Nb of histogram bins */
   float	 qzero, qscale;		/* Position of histogram */
   float	 lcut, hcut;		/* Histogram cuts */
-  int	 npix;			/* Number of pixels involved */
+  int64_t	 npix;			/* Number of pixels involved */
 } backstruct;
 
 /* internal helper functions */
 void backhisto(backstruct *backmesh,
-	       const PIXTYPE *buf, const PIXTYPE *wbuf, int bufsize,
-	       int n, int w, int bw, PIXTYPE maskthresh);
+	       const PIXTYPE *buf, const PIXTYPE *wbuf, int64_t bufsize,
+	       int64_t n, int64_t w, int64_t bw, PIXTYPE maskthresh);
 void backstat(backstruct *backmesh,
-	      const PIXTYPE *buf, const PIXTYPE *wbuf, int bufsize,
-	      int n, int w, int bw, PIXTYPE maskthresh);
-int filterback(sep_bkg *bkg, int fw, int fh, double fthresh);
+	      const PIXTYPE *buf, const PIXTYPE *wbuf, int64_t bufsize,
+	      int64_t n, int64_t w, int64_t bw, PIXTYPE maskthresh);
+int filterback(sep_bkg *bkg, int64_t fw, int64_t fh, double fthresh);
 float backguess(backstruct *bkg, float *mean, float *sigma);
 int makebackspline(const sep_bkg *bkg, float *map, float *dmap);
 
 
-int sep_background(const sep_image* image, int bw, int bh, int fw, int fh,
+int sep_background(const sep_image* image, int64_t bw, int64_t bh, int64_t fw, int64_t fh,
                    double fthresh, sep_bkg **bkg)
 {
   const BYTE *imt, *maskt;
-  int npix;                   /* size of image */
-  int nx, ny, nb;             /* number of background boxes in x, y, total */
-  int bufsize;                /* size of a "row" of boxes in pixels (w*bh) */
-  int elsize;                 /* size (in bytes) of an image array element */
-  int melsize;                /* size (in bytes) of a mask array element */
+  int64_t npix;                   /* size of image */
+  int64_t nx, ny, nb;             /* number of background boxes in x, y, total */
+  int64_t bufsize;                /* size of a "row" of boxes in pixels (w*bh) */
+  int64_t elsize;                 /* size (in bytes) of an image array element */
+  int64_t melsize;                /* size (in bytes) of a mask array element */
   PIXTYPE *buf, *mbuf;
   const PIXTYPE *buft, *mbuft;
   PIXTYPE maskthresh;
   array_converter convert, mconvert;
   backstruct *backmesh, *bm;  /* info about each background "box" */
   sep_bkg *bkgout;          /* output */
-  int j,k,m, status;
+  int64_t j,k,m;
+  int status;
 
   status = RETURN_OK;
   npix = image->w * image->h;
@@ -180,7 +181,7 @@ int sep_background(const sep_image* image, int bw, int bh, int fw, int fh,
 	if (bm->mean <= -BIG)
 	  bm->histo=NULL;
 	else
-	  QCALLOC(bm->histo, LONG, bm->nlevels, status);
+	  QCALLOC(bm->histo, int64_t, bm->nlevels, status);
       backhisto(backmesh, buft, mbuft, bufsize, nx, image->w, bw, maskthresh);
 
       /* Compute background statistics from the histograms */
@@ -243,14 +244,14 @@ int sep_background(const sep_image* image, int bw, int bh, int fw, int fh,
 Compute robust statistical estimators in a row of meshes.
 */
 void backstat(backstruct *backmesh,
-	      const PIXTYPE *buf, const PIXTYPE *wbuf, int bufsize,
-	      int n, int w, int bw, PIXTYPE maskthresh)
+	      const PIXTYPE *buf, const PIXTYPE *wbuf, int64_t bufsize,
+	      int64_t n, int64_t w, int64_t bw, PIXTYPE maskthresh)
 {
   backstruct	*bm;
   double	pix, wpix, sig, mean, sigma, step;
   const PIXTYPE	*buft,*wbuft;
   PIXTYPE       lcut,hcut;
-  int		m,h,x,y, npix,wnpix, offset, lastbite;
+  int64_t		m,h,x,y, npix,wnpix, offset, lastbite;
 
   h = bufsize/w;  /* height of background boxes in this row */
   bm = backmesh;
@@ -362,14 +363,14 @@ void backstat(backstruct *backmesh,
 Fill histograms in a row of meshes.
 */
 void backhisto(backstruct *backmesh,
-	       const PIXTYPE *buf, const PIXTYPE *wbuf, int bufsize,
-	       int n, int w, int bw, PIXTYPE maskthresh)
+	       const PIXTYPE *buf, const PIXTYPE *wbuf, int64_t bufsize,
+	       int64_t n, int64_t w, int64_t bw, PIXTYPE maskthresh)
 {
   backstruct	*bm;
   const PIXTYPE	*buft,*wbuft;
   float	        qscale, cste, wpix;
-  LONG		*histo;
-  int		h,m,x,y, nlevels, lastbite, offset, bin;
+  int64_t		*histo;
+  int64_t		h,m,x,y, nlevels, lastbite, offset, bin;
 
   h = bufsize/w;
   bm = backmesh;
@@ -402,7 +403,7 @@ void backhisto(backstruct *backmesh,
 	  for (y=h; y--; buft+=offset, wbuft+=offset)
 	    for (x=bw; x--;)
 	      {
-		bin = (int)(*(buft++)/qscale + cste);
+		bin = (int64_t)(*(buft++)/qscale + cste);
 		if ((wpix = *(wbuft++))<=maskthresh && bin<nlevels && bin>=0)
 		  (*(histo+bin))++;
 	      }
@@ -412,7 +413,7 @@ void backhisto(backstruct *backmesh,
 	for (y=h; y--; buft += offset)
 	  for (x=bw; x--;)
 	    {
-	      bin = (int)(*(buft++)/qscale + cste);
+	      bin = (int64_t)(*(buft++)/qscale + cste);
 
 	      if (bin>=0 && bin<nlevels)
 		(*(histo+bin))++;
@@ -429,10 +430,10 @@ float backguess(backstruct *bkg, float *mean, float *sigma)
 #define	EPS	(1e-4)	/* a small number */
 
 {
-  LONG		*histo, *hilow, *hihigh, *histot;
+  int64_t		*histo, *hilow, *hihigh, *histot;
   unsigned long lowsum, highsum, sum;
   double	ftemp, mea, sig, sig1, med, dpix;
-  int		i, n, lcut,hcut, nlevelsm1, pix;
+  int64_t		i, n, lcut,hcut, nlevelsm1, pix;
 
   /* Leave here if the mesh is already classified as `bad' */
   if (bkg->mean<=-BIG)
@@ -480,8 +481,8 @@ float backguess(backstruct *bkg, float *mean, float *sigma)
 	}
 
       sig = sig>0.0?sqrt(sig):0.0;
-      lcut = (ftemp=med-3.0*sig)>0.0 ?(int)(ftemp>0.0?ftemp+0.5:ftemp-0.5):0;
-      hcut = (ftemp=med+3.0*sig)<nlevelsm1 ?(int)(ftemp>0.0?ftemp+0.5:ftemp-0.5)
+      lcut = (ftemp=med-3.0*sig)>0.0 ?(int64_t)(ftemp>0.0?ftemp+0.5:ftemp-0.5):0;
+      hcut = (ftemp=med+3.0*sig)<nlevelsm1 ?(int64_t)(ftemp>0.0?ftemp+0.5:ftemp-0.5)
 	: nlevelsm1;
 
     }
@@ -499,13 +500,13 @@ float backguess(backstruct *bkg, float *mean, float *sigma)
 
 /****************************************************************************/
 
-int filterback(sep_bkg *bkg, int fw, int fh, double fthresh)
+int filterback(sep_bkg *bkg, int64_t fw, int64_t fh, double fthresh)
 /* Median filterthe background map to remove the contribution
  * from bright sources. */
 {
   float	*back, *sigma, *back2, *sigma2, *bmask, *smask, *sigmat;
   float d2, d2min, med, val, sval;
-  int i, j, px, py, np, nx, ny, npx, npx2, npy, npy2, dpx, dpy, x, y, nmin;
+  int64_t i, j, px, py, np, nx, ny, npx, npx2, npy, npy2, dpx, dpy, x, y, nmin;
   int status;
 
   status = RETURN_OK;
@@ -638,7 +639,8 @@ int filterback(sep_bkg *bkg, int fw, int fh, double fthresh)
  */
 int makebackspline(const sep_bkg *bkg, float *map, float *dmap)
 {
-  int   x, y, nbx, nby, nbym1, status;
+  int64_t   x, y, nbx, nby, nbym1;
+  int status;
   float *dmapt, *mapt, *u, temp;
   u = NULL;
   status = RETURN_OK;
@@ -698,13 +700,13 @@ float sep_bkg_globalrms(const sep_bkg *bkg)
 
 /*****************************************************************************/
 
-float sep_bkg_pix(const sep_bkg *bkg, int x, int y)
+float sep_bkg_pix(const sep_bkg *bkg, int64_t x, int64_t y)
 /*
  * return background at position x,y.
  * (linear interpolation between background map vertices).
  */
 {
-  int    nx, ny, xl, yl, pos;
+  int64_t    nx, ny, xl, yl, pos;
   double dx, dy, cdx;
   float	 *b;
   float  b0, b1, b2, b3;
@@ -715,8 +717,8 @@ float sep_bkg_pix(const sep_bkg *bkg, int x, int y)
 
   dx = (double)x/bkg->bw - 0.5;
   dy = (double)y/bkg->bh - 0.5;
-  dx -= (xl = (int)dx);
-  dy -= (yl = (int)dy);
+  dx -= (xl = (int64_t)dx);
+  dy -= (yl = (int64_t)dy);
 
   if (xl<0)
     {
@@ -754,7 +756,7 @@ float sep_bkg_pix(const sep_bkg *bkg, int x, int y)
 
 /*****************************************************************************/
 
-int bkg_line_flt_internal(const sep_bkg *bkg, float *values, float *dvalues, int y,
+int bkg_line_flt_internal(const sep_bkg *bkg, float *values, float *dvalues, int64_t y,
                           float *line)
 /* Interpolate background at line y (bicubic spline interpolation between
  * background map vertices) and save to line.
@@ -762,7 +764,8 @@ int bkg_line_flt_internal(const sep_bkg *bkg, float *values, float *dvalues, int
  * (bkg->sigma, bkg->dsigma) depending on whether the background value or rms
  * is being evaluated. */
 {
-  int i,j,x,yl, nbx,nbxm1,nby, nx,width, ystep, changepoint, status;
+  int64_t i,j,x,yl, nbx,nbxm1,nby, nx,width, ystep, changepoint;
+  int status;
   float	dx,dx0,dy,dy3, cdx,cdy,cdy3, temp, xstep;
   float *nodebuf, *dnodebuf, *u;
   float *node, *nodep, *dnode, *blo, *bhi, *dblo, *dbhi;
@@ -779,7 +782,7 @@ int bkg_line_flt_internal(const sep_bkg *bkg, float *values, float *dvalues, int
   if (nby > 1)
     {
       dy = (float)y/bkg->bh - 0.5;
-      dy -= (yl = (int)dy);
+      dy -= (yl = (int64_t)dy);
       if (yl<0)
 	{
 	  yl = 0;
@@ -885,7 +888,7 @@ int bkg_line_flt_internal(const sep_bkg *bkg, float *values, float *dvalues, int
   return status;
 }
 
-int sep_bkg_line_flt(const sep_bkg *bkg, int y, float *line)
+int sep_bkg_line_flt(const sep_bkg *bkg, int64_t y, float *line)
 /* Interpolate background at line y (bicubic spline interpolation between
  * background map vertices) and save to line */
 {
@@ -894,7 +897,7 @@ int sep_bkg_line_flt(const sep_bkg *bkg, int y, float *line)
 
 /*****************************************************************************/
 
-int sep_bkg_rmsline_flt(const sep_bkg *bkg, int y, float *line)
+int sep_bkg_rmsline_flt(const sep_bkg *bkg, int64_t y, float *line)
 /* Interpolate background rms at line y (bicubic spline interpolation between
  * background map vertices) and save to line */
 {
@@ -905,10 +908,11 @@ int sep_bkg_rmsline_flt(const sep_bkg *bkg, int y, float *line)
 /* Multiple dtype functions and convenience functions.
  * These mostly wrap the two "line" functions above. */
 
-int sep_bkg_line(const sep_bkg *bkg, int y, void *line, int dtype)
+int sep_bkg_line(const sep_bkg *bkg, int64_t y, void *line, int dtype)
 {
   array_writer write_array;
-  int size, status;
+  int64_t size;
+  int status;
   float *tmpline;
 
   if (dtype == SEP_TFLOAT)
@@ -933,10 +937,11 @@ int sep_bkg_line(const sep_bkg *bkg, int y, void *line, int dtype)
   return status;
 }
 
-int sep_bkg_rmsline(const sep_bkg *bkg, int y, void *line, int dtype)
+int sep_bkg_rmsline(const sep_bkg *bkg, int64_t y, void *line, int dtype)
 {
   array_writer write_array;
-  int size, status;
+  int64_t size;
+  int status;
   float *tmpline;
 
   if (dtype == SEP_TFLOAT)
@@ -963,7 +968,8 @@ int sep_bkg_rmsline(const sep_bkg *bkg, int y, void *line, int dtype)
 
 int sep_bkg_array(const sep_bkg *bkg, void *arr, int dtype)
 {
-  int y, width, size, status;
+  int64_t y, width, size;
+  int status;
   array_writer write_array;
   float *tmpline;
   BYTE *line;
@@ -1001,7 +1007,8 @@ int sep_bkg_array(const sep_bkg *bkg, void *arr, int dtype)
 
 int sep_bkg_rmsarray(const sep_bkg *bkg, void *arr, int dtype)
 {
-  int y, width, size, status;
+  int64_t y, width, size;
+  int status;
   array_writer write_array;
   float *tmpline;
   BYTE *line;
@@ -1037,10 +1044,11 @@ int sep_bkg_rmsarray(const sep_bkg *bkg, void *arr, int dtype)
   return status;
 }
 
-int sep_bkg_subline(const sep_bkg *bkg, int y, void *line, int dtype)
+int sep_bkg_subline(const sep_bkg *bkg, int64_t y, void *line, int dtype)
 {
   array_writer subtract_array;
-  int status, size;
+  int status;
+  int64_t size;
   PIXTYPE *tmpline;
 
   tmpline = NULL;
@@ -1066,7 +1074,8 @@ int sep_bkg_subline(const sep_bkg *bkg, int y, void *line, int dtype)
 int sep_bkg_subarray(const sep_bkg *bkg, void *arr, int dtype)
 {
   array_writer subtract_array;
-  int y, status, size, width;
+  int64_t y, size, width;
+  int status;
   PIXTYPE *tmpline;
   BYTE *arrt;
 

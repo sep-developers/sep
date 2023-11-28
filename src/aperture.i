@@ -16,9 +16,8 @@ int APER_NAME(const sep_image *im,
   PIXTYPE pix, varpix;
   double dx, dy, dx1, dy2, offset, scale, scale2, tmp;
   double tv, sigtv, totarea, maskarea, overlap, rpix2;
-  int ix, iy, xmin, xmax, ymin, ymax, sx, sy, status, size, esize, msize, ssize;
-  int ismasked;
-  long pos;
+  int64_t ix, iy, xmin, xmax, ymin, ymax, sx, sy, pos, size, esize, msize, ssize;
+  int ismasked, status;
   short errisarray, errisstd;
   const BYTE *datat, *errort, *maskt, *segt;
   converter convert, econvert, mconvert, sconvert;

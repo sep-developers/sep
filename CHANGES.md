@@ -1,4 +1,4 @@
-v1.3.0dev (27 November 2023)
+v1.3.0dev1 (27 November 2023)
 ====================
 
 * The `segmentation_map` argument of `sep.extract()` will now accept either an 
@@ -10,6 +10,9 @@ v1.3.0dev (27 November 2023)
   Please note that as no deblending is performed, 
   the calculated thresholds (and any dependent parameters) may not be the same 
   as originally derived.
+
+* Use 64-bit integers throughout, to fix memory addressing with large arrays 
+  (#122).
 
 
 v1.2.1 (1 June 2022)

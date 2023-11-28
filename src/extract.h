@@ -42,9 +42,9 @@ typedef	enum {COMPLETE, INCOMPLETE, NONOBJECT, OBJECT} pixstatus;
 /* Temporary object parameters during extraction */
 typedef struct structinfo
 {
-  long	pixnb;	    /* Number of pixels included */
-  long	firstpix;   /* Pointer to first pixel of pixlist */
-  long	lastpix;    /* Pointer to last pixel of pixlist */
+  int64_t	pixnb;	    /* Number of pixels included */
+  int64_t	firstpix;   /* Pointer to first pixel of pixlist */
+  int64_t	lastpix;    /* Pointer to last pixel of pixlist */
   short	flag;	    /* Extraction flag */
 } infostruct;
 
@@ -52,8 +52,8 @@ typedef	char pliststruct;      /* Dummy type for plist */
 
 typedef struct
 {
-  int     nextpix;
-  int     x, y;
+  int64_t     nextpix;
+  int64_t     x, y;
   PIXTYPE value;
 } pbliststruct;
 
@@ -62,22 +62,22 @@ typedef struct
 {
   const BYTE *dptr;         /* pointer to original data, can be any supported type */
   int dtype;          /* data type of original data */
-  int dw, dh;         /* original data width, height */
+  int64_t dw, dh;         /* original data width, height */
   PIXTYPE *bptr;      /* buffer pointer (self-managed memory) */
-  int bw, bh;         /* buffer width, height (bufw can be larger than w due */
+  int64_t bw, bh;         /* buffer width, height (bufw can be larger than w due */
                       /* to padding). */
   PIXTYPE *midline;   /* "middle" line in buffer (at index bh/2) */
   PIXTYPE *lastline;  /* last line in buffer */
   array_converter readline;  /* function to read a data line into buffer */
-  int elsize;         /* size in bytes of one element in original data */
-  int yoff;           /* line index in original data corresponding to bufptr */
+  int64_t elsize;         /* size in bytes of one element in original data */
+  int64_t yoff;           /* line index in original data corresponding to bufptr */
 } arraybuffer;
 
 
 /* globals */
-extern _Thread_local int plistexist_cdvalue, plistexist_thresh, plistexist_var;
-extern _Thread_local int plistoff_value, plistoff_cdvalue, plistoff_thresh, plistoff_var;
-extern _Thread_local int plistsize;
+extern _Thread_local int64_t plistexist_cdvalue, plistexist_thresh, plistexist_var;
+extern _Thread_local int64_t plistoff_value, plistoff_cdvalue, plistoff_thresh, plistoff_var;
+extern _Thread_local int64_t plistsize;
 extern _Thread_local unsigned int randseed;
 
 typedef struct
@@ -87,17 +87,17 @@ typedef struct
   float	   mthresh;		             /* max. threshold (ADU) */
 
   /* # pixels */
-  int	   fdnpix;		       	/* nb of extracted pix */
-  int	   dnpix;	       		/* nb of pix above thresh  */
-  int	   npix;       			/* "" in measured frame */
-  int	   nzdwpix;			/* nb of zero-dweights around */
-  int	   nzwpix;		       	/* nb of zero-weights inside */
+  int64_t	   fdnpix;		       	/* nb of extracted pix */
+  int64_t	   dnpix;	       		/* nb of pix above thresh  */
+  int64_t	   npix;       			/* "" in measured frame */
+  int64_t	   nzdwpix;			/* nb of zero-dweights around */
+  int64_t	   nzwpix;		       	/* nb of zero-weights inside */
 
   /* position */
-  int	   xpeak, ypeak;                     /* pos of brightest pix */
-  int	   xcpeak,ycpeak;                    /* pos of brightest pix */
+  int64_t	   xpeak, ypeak;                     /* pos of brightest pix */
+  int64_t	   xcpeak,ycpeak;                    /* pos of brightest pix */
   double   mx, my;        	             /* barycenter */
-  int	   xmin,xmax,ymin,ymax,ycmin,ycmax;  /* x,y limits */
+  int64_t	   xmin,xmax,ymin,ymax,ycmin,ycmax;  /* x,y limits */
 
   /* shape */
   double   mx2,my2,mxy;			     /* variances and covariance */
@@ -118,15 +118,15 @@ typedef struct
   short	   flag;			     /* extraction flags */
 
   /* accessing individual pixels in plist*/
-  int	   firstpix;			     /* ptr to first pixel */
-  int	   lastpix;			     /* ptr to last pixel */
+  int64_t	   firstpix;			     /* ptr to first pixel */
+  int64_t	   lastpix;			     /* ptr to last pixel */
 } objstruct;
 
 typedef struct
 {
-  int           nobj;	  /* number of objects in list */
+  int64_t           nobj;	  /* number of objects in list */
   objstruct     *obj;	  /* pointer to the object array */
-  int           npix;	  /* number of pixels in pixel-list */
+  int64_t           npix;	  /* number of pixels in pixel-list */
   pliststruct   *plist;	  /* pointer to the pixel-list */
   PIXTYPE       thresh;   /* detection threshold */
 } objliststruct;
@@ -141,14 +141,14 @@ typedef struct {
 	infostruct  *info, *store;
 	char	   *marker;
 	pixstatus   *psstack;
-	int         *start, *end, *discan;
-	int         xmin, ymin, xmax, ymax;
+	int64_t         *start, *end, *discan;
+	int64_t         xmin, ymin, xmax, ymax;
 } lutzbuffers;
 
-int  lutzalloc(int, int, lutzbuffers *);
+int  lutzalloc(int64_t, int64_t, lutzbuffers *);
 void lutzfree(lutzbuffers *);
 int  lutz(pliststruct *plistin,
-	  int *objrootsubmap, int subx, int suby, int subw,
+	  int64_t *objrootsubmap, int64_t subx, int64_t suby, int64_t subw,
 	  objstruct *objparent, objliststruct *objlist, int minarea,
 	  lutzbuffers *buffers);
 
@@ -160,9 +160,9 @@ typedef struct {
 	lutzbuffers lutz;
 } deblendctx;
 
-int  allocdeblend(int deblend_nthresh, int w, int h, deblendctx *);
+int  allocdeblend(int deblend_nthresh, int64_t w, int64_t h, deblendctx *);
 void freedeblend(deblendctx *);
-int  deblend(objliststruct *, int, objliststruct *, int, double, int, deblendctx *);
+int  deblend(objliststruct *, int64_t, objliststruct *, int, double, int, deblendctx *);
 
 /*int addobjshallow(objstruct *, objliststruct *);
 int rmobjshallow(int, objliststruct *);
@@ -170,8 +170,8 @@ void mergeobjshallow(objstruct *, objstruct *);
 */
 int addobjdeep(int, objliststruct *, objliststruct *);
 
-int convolve(arraybuffer *buf, int y, const float *conv, int convw, int convh,
+int convolve(arraybuffer *buf, int64_t y, const float *conv, int64_t convw, int64_t convh,
              PIXTYPE *out);
-int matched_filter(arraybuffer *imbuf, arraybuffer *nbuf, int y,
-                   const float *conv, int convw, int convh,
+int matched_filter(arraybuffer *imbuf, arraybuffer *nbuf, int64_t y,
+                   const float *conv, int64_t convw, int64_t convh,
                    PIXTYPE *work, PIXTYPE *out, int noise_type);

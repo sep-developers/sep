@@ -25,6 +25,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 #include "sep.h"
 #include "sepcore.h"
@@ -35,9 +36,9 @@
 			             /* thresholding filtered weight-maps */
 
 /* globals */
-_Thread_local int plistexist_cdvalue, plistexist_thresh, plistexist_var;
-_Thread_local int plistoff_value, plistoff_cdvalue, plistoff_thresh, plistoff_var;
-_Thread_local int plistsize;
+_Thread_local int64_t plistexist_cdvalue, plistexist_thresh, plistexist_var;
+_Thread_local int64_t plistoff_value, plistoff_cdvalue, plistoff_thresh, plistoff_var;
+_Thread_local int64_t plistsize;
 _Thread_local unsigned int randseed;
 static _Atomic size_t extract_pixstack = 300000;
 
@@ -60,10 +61,10 @@ int segsortit(infostruct *info, objliststruct *objlist,
 void plistinit(int hasconv, int hasvar);
 void clean(objliststruct *objlist, double clean_param, int *survives);
 int convert_to_catalog(objliststruct *objlist, const int *survives,
-                       sep_catalog *cat, int w, int include_pixels);
+                       sep_catalog *cat, int64_t w, int include_pixels);
 
-int arraybuffer_init(arraybuffer *buf, const void *arr, int dtype, int w, int h,
-                     int bufw, int bufh);
+int arraybuffer_init(arraybuffer *buf, const void *arr, int dtype, 
+                     int64_t w, int64_t h, int64_t bufw, int64_t bufh);
 void arraybuffer_readline(arraybuffer *buf);
 void arraybuffer_free(arraybuffer *buf);
 
@@ -71,9 +72,10 @@ void arraybuffer_free(arraybuffer *buf);
 
 /* initialize buffer */
 /* bufw must be less than or equal to w */
-int arraybuffer_init(arraybuffer *buf, const void *arr, int dtype, int w, int h,
-                     int bufw, int bufh) {
-  int status, yl;
+int arraybuffer_init(arraybuffer *buf, const void *arr, int dtype, 
+                     int64_t w, int64_t h, int64_t bufw, int64_t bufh) {
+  int status;
+  int64_t yl;
   status = RETURN_OK;
 
   /* data info */
@@ -113,7 +115,7 @@ int arraybuffer_init(arraybuffer *buf, const void *arr, int dtype, int w, int h,
 /* read a line into the buffer at the top, shifting all lines down one */
 void arraybuffer_readline(arraybuffer *buf) {
   PIXTYPE *line;
-  int y;
+  int64_t y;
 
   /* shift all lines down one */
   for (line = buf->bptr; line < buf->lastline; line += buf->bw)
@@ -152,7 +154,7 @@ void arraybuffer_free(arraybuffer *buf) {
  * infinity in the noise buffer (if present). It affects the first
  */
 void apply_mask_line(arraybuffer *mbuf, arraybuffer *imbuf, arraybuffer *nbuf) {
-  int i;
+  int64_t i;
 
   for (i=0; i<mbuf->bw; i++) {
     if (mbuf->lastline[i] > 0.0) {
@@ -166,7 +168,7 @@ void apply_mask_line(arraybuffer *mbuf, arraybuffer *imbuf, arraybuffer *nbuf) {
 
 /****************************** extract **************************************/
 int sep_extract(const sep_image *image, float thresh, int thresh_type,
-                int minarea, const float *conv, int convw, int convh,
+                int minarea, const float *conv, int64_t convw, int64_t convh,
                 int filter_type, int deblend_nthresh, double deblend_cont,
                 int clean_flag, double clean_param, sep_catalog **catalog) {
 
@@ -175,14 +177,13 @@ int sep_extract(const sep_image *image, float thresh, int thresh_type,
   objliststruct     objlist;
   char              newmarker;
   size_t            mem_pixstack;
-  int               nposize, oldnposize;
-  int               w, h;
-  int               co, i, j, luflag, pstop, xl, xl2, yl, cn;
-  int               ididx, numids, totnpix;
-  long              prevpix;
-  int               stacksize, convn, status;
-  int               bufh;
-  int               isvarthresh, isvarnoise;
+  int64_t           nposize, oldnposize;
+  int64_t           w, h;
+  int64_t           co, i, j, pstop, xl, xl2, yl, cn;
+  int64_t           ididx, numids, totnpix;
+  int64_t           prevpix, bufh;
+  int64_t           stacksize, convn;
+  int               status, isvarthresh, isvarnoise, luflag;
   short             trunflag;
   PIXTYPE           relthresh, cdnewsymbol, pixvar, pixsig;
   float             sum;
@@ -190,12 +191,13 @@ int sep_extract(const sep_image *image, float thresh, int thresh_type,
 
   infostruct        *info, *store;
   objliststruct     *finalobjlist;
-  pliststruct	    *pixel, *pixt;
+  pliststruct	      *pixel, *pixt;
   char              *marker;
   PIXTYPE           *scan, *cdscan, *wscan, *dummyscan, *sscan;
   PIXTYPE           *sigscan, *workscan;
   float             *convnorm;
-  int               *start, *end, *survives;
+  int64_t           *start, *end, *cumcounts;
+  int               *survives;
   pixstatus         *psstack;
   char              errtext[512];
   sep_catalog       *cat;
@@ -220,6 +222,7 @@ int sep_extract(const sep_image *image, float thresh, int thresh_type,
   h = image->h;
   numids = (image->numids) ? image->numids : 1;
   infostruct idinfo[numids];
+  prevpix = 0;
   isvarthresh = 0;
   relthresh = 0.0;
   pixvar = 0.0;
@@ -230,8 +233,10 @@ int sep_extract(const sep_image *image, float thresh, int thresh_type,
   mem_pixstack = sep_get_extract_pixstack();
 
   if (image->segmap) {
+    QCALLOC(cumcounts, int64_t, numids, status)
     totnpix = 0;
     for (i=0; i<numids; i++) {
+      cumcounts[i] = totnpix;
       totnpix += image->idcounts[i];
     }
     if (totnpix>mem_pixstack) {
@@ -294,8 +299,8 @@ int sep_extract(const sep_image *image, float thresh, int thresh_type,
   QMALLOC(marker, char, stacksize, status);
   QMALLOC(dummyscan, PIXTYPE, stacksize, status);
   QMALLOC(psstack, pixstatus, stacksize, status);
-  QCALLOC(start, int, stacksize, status);
-  QMALLOC(end, int, stacksize, status);
+  QCALLOC(start, int64_t, stacksize, status);
+  QMALLOC(end, int64_t, stacksize, status);
   if ((status = allocdeblend(deblend_nthresh, w, h, &deblendctx)) != RETURN_OK)
     goto exit;
 
@@ -358,8 +363,8 @@ int sep_extract(const sep_image *image, float thresh, int thresh_type,
   } else {
     objlist.nobj = 1;
   }
-  curpixinfo.pixnb = 1;
-
+  curpixinfo.pixnb = 1;  
+  
   /* Init finalobjlist */
   QMALLOC(finalobjlist, objliststruct, 1, status);
   finalobjlist->obj = NULL;
@@ -498,11 +503,11 @@ int sep_extract(const sep_image *image, float thresh, int thresh_type,
           if (xl == 0 || xl == w - 1)
             curpixinfo.flag |= SEP_OBJ_TRUNC;
 
-          prevpix = 0;
           for (ididx=0; ididx<numids; ididx++) {
-            if (image->segids[ididx]==(int)sscan[xl]) {
+            if (image->segids[ididx]==(long)sscan[xl]) {
 
-              prevpix += idinfo[ididx].pixnb;
+              pixt = pixel + prevpix*plistsize;
+              prevpix = cumcounts[ididx] + idinfo[ididx].pixnb;
               pixt = pixel + prevpix*plistsize;
 
               PLIST(pixt, x) = xl;
@@ -530,9 +535,7 @@ int sep_extract(const sep_image *image, float thresh, int thresh_type,
                 idinfo[ididx].pixnb++;
               };
               break;
-            } else {
-              prevpix += image->idcounts[ididx];
-            }
+            } 
           }
         }
       } else {
@@ -671,7 +674,7 @@ int sep_extract(const sep_image *image, float thresh, int thresh_type,
             ps = psstack[--pstop];
             if ((cs == NONOBJECT) && (ps == COMPLETE)) {
               if (start[co] == UNKNOWN) {
-			          if ((int)info[co].pixnb >= minarea) {
+			          if ((int64_t)info[co].pixnb >= minarea) {
 			            /* update threshold before object is processed */
 			            objlist.thresh = thresh;
 
@@ -748,6 +751,10 @@ int sep_extract(const sep_image *image, float thresh, int thresh_type,
     free(finalobjlist->plist);
     free(finalobjlist);
   }
+  if (image->segmap) {
+    free(cumcounts);
+    arraybuffer_free(&sbuf);
+  }
   freedeblend(&deblendctx);
   free(pixel);
   free(info);
@@ -788,7 +795,8 @@ int segsortit(infostruct *info, objliststruct *objlist,
            objliststruct *finalobjlist, double gain) {
   objliststruct objlistout, *objlist2;
   objstruct obj;
-  int i, status;
+  int64_t i;
+  int status;
 
   status = RETURN_OK;
 
@@ -826,7 +834,8 @@ int sortit(infostruct *info, objliststruct *objlist, int minarea,
 {
   objliststruct	        objlistout, *objlist2;
   objstruct	obj;
-  int 			i, status;
+  int64_t 			i;
+  int status;
 
   status=RETURN_OK;
   objlistout.obj = NULL;
@@ -894,7 +903,7 @@ int addobjdeep(int objnb, objliststruct *objl1, objliststruct *objl2)
 {
   objstruct	*objl2obj;
   pliststruct	*plist1 = objl1->plist, *plist2 = objl2->plist;
-  int		fp, i, j, npx, objnb2;
+  int64_t		fp, i, j, npx, objnb2;
 
   fp = objl2->npix;      /* 2nd list's plist size in pixels */
   j = fp*plistsize;      /* 2nd list's plist size in bytes */
@@ -1000,7 +1009,7 @@ Fill a list with whether each object in the list survived the cleaning
 void clean(objliststruct *objlist, double clean_param, int *survives)
 {
   objstruct     *obj1, *obj2;
-  int	        i,j;
+  int64_t	      i,j;
   double        amp,ampin,alpha,alphain, unitarea,unitareain,beta,val;
   float	       	dx,dy,rlim;
 
@@ -1117,10 +1126,10 @@ void free_catalog_fields(sep_catalog *catalog)
  * `w`:        width of image (used to calculate linear indicies).
  */
 int convert_to_catalog(objliststruct *objlist, const int *survives,
-                       sep_catalog *cat, int w, int include_pixels)
+                       sep_catalog *cat, int64_t w, int include_pixels)
 {
-  int i, j, k;
-  int totnpix;
+  int64_t i, j, k;
+  int64_t totnpix;
   int nobj = 0;
   int status = RETURN_OK;
   objstruct *obj;
@@ -1141,12 +1150,12 @@ int convert_to_catalog(objliststruct *objlist, const int *survives,
   /* allocate catalog fields */
   cat->nobj = nobj;
   QMALLOC(cat->thresh, float, nobj, status);
-  QMALLOC(cat->npix, int, nobj, status);
-  QMALLOC(cat->tnpix, int, nobj, status);
-  QMALLOC(cat->xmin, int, nobj, status);
-  QMALLOC(cat->xmax, int, nobj, status);
-  QMALLOC(cat->ymin, int, nobj, status);
-  QMALLOC(cat->ymax, int, nobj, status);
+  QMALLOC(cat->npix, int64_t, nobj, status);
+  QMALLOC(cat->tnpix, int64_t, nobj, status);
+  QMALLOC(cat->xmin, int64_t, nobj, status);
+  QMALLOC(cat->xmax, int64_t, nobj, status);
+  QMALLOC(cat->ymin, int64_t, nobj, status);
+  QMALLOC(cat->ymax, int64_t, nobj, status);
   QMALLOC(cat->x, double, nobj, status);
   QMALLOC(cat->y, double, nobj, status);
   QMALLOC(cat->x2, double, nobj, status);
@@ -1165,10 +1174,10 @@ int convert_to_catalog(objliststruct *objlist, const int *survives,
   QMALLOC(cat->flux, float, nobj, status);
   QMALLOC(cat->cpeak, float, nobj, status);
   QMALLOC(cat->peak, float, nobj, status);
-  QMALLOC(cat->xcpeak, int, nobj, status);
-  QMALLOC(cat->ycpeak, int, nobj, status);
-  QMALLOC(cat->xpeak, int, nobj, status);
-  QMALLOC(cat->ypeak, int, nobj, status);
+  QMALLOC(cat->xcpeak, int64_t, nobj, status);
+  QMALLOC(cat->ycpeak, int64_t, nobj, status);
+  QMALLOC(cat->xpeak, int64_t, nobj, status);
+  QMALLOC(cat->ypeak, int64_t, nobj, status);
   QMALLOC(cat->cflux, float, nobj, status);
   QMALLOC(cat->flux, float, nobj, status);
   QMALLOC(cat->flag, short, nobj, status);
@@ -1227,10 +1236,10 @@ int convert_to_catalog(objliststruct *objlist, const int *survives,
       for (i=0; i<cat->nobj; i++) totnpix += cat->npix[i];
 
       /* allocate buffer for all objects' pixels */
-      QMALLOC(cat->objectspix, int, totnpix, status);
+      QMALLOC(cat->objectspix, int64_t, totnpix, status);
 
       /* allocate array of pointers into the above buffer */
-      QMALLOC(cat->pix, int*, nobj, status);
+      QMALLOC(cat->pix, int64_t*, nobj, status);
 
       pixel = objlist->plist;
 

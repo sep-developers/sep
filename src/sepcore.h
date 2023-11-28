@@ -47,8 +47,8 @@ typedef float         PIXTYPE;    /* type used inside of functions */
 
 /* signature of converters */
 typedef PIXTYPE (*converter)(const void *ptr);
-typedef void (*array_converter)(const void *ptr, int n, PIXTYPE *target);
-typedef void (*array_writer)(const float *ptr, int n, void *target);
+typedef void (*array_converter)(const void *ptr, int64_t n, PIXTYPE *target);
+typedef void (*array_writer)(const float *ptr, int64_t n, void *target);
 
 #define	QCALLOC(ptr, typ, nel, status)				     	\
   {if (!(ptr = (typ *)calloc((size_t)(nel),sizeof(typ))))		\
@@ -76,13 +76,13 @@ typedef void (*array_writer)(const float *ptr, int n, void *target);
       };								\
   }
 
-float fqmedian(float *ra, int n);
+float fqmedian(float *ra, int64_t n);
 void put_errdetail(const char *errtext);
 
-int get_converter(int dtype, converter *f, int *size);
-int get_array_converter(int dtype, array_converter *f, int *size);
-int get_array_writer(int dtype, array_writer *f, int *size);
-int get_array_subtractor(int dtype, array_writer *f, int *size);
+int get_converter(int dtype, converter *f, int64_t *size);
+int get_array_converter(int dtype, array_converter *f, int64_t *size);
+int get_array_writer(int dtype, array_writer *f, int64_t *size);
+int get_array_subtractor(int dtype, array_writer *f, int64_t *size);
 
 #if defined(_MSC_VER)
 #define _Thread_local __declspec(thread)

@@ -48,7 +48,7 @@ int sep_get_sub_object_limit()
 
 
 int belong(int, objliststruct *, int, objliststruct *);
-int *createsubmap(objliststruct *, int, int *, int *, int *, int *);
+int64_t *createsubmap(objliststruct *, int64_t, int64_t *, int64_t *, int64_t *, int64_t *);
 int gatherup(objliststruct *, objliststruct *);
 
 /******************************** deblend ************************************/
@@ -59,18 +59,16 @@ NOTE: Even if the object is not deblended, the output objlist threshold is
 
 This can return two error codes: DEBLEND_OVERFLOW or MEMORY_ALLOC_ERROR
 */
-int deblend(objliststruct *objlistin, int l, objliststruct *objlistout,
+int deblend(objliststruct *objlistin, int64_t l, objliststruct *objlistout,
 	    int deblend_nthresh, double deblend_mincont, int minarea,
 	    deblendctx *ctx)
 {
   objstruct		*obj;
   objliststruct	debobjlist, debobjlist2;
   double		thresh, thresh0, value0;
-  int			h,i,j,k,m,subx,suby,subh,subw,
-                        xn,
-			nbm = NBRANCH,
-			status;
-  int                   *submap;
+  int64_t		h,i,j,k,m,subx,suby,subh,subw,xn, nbm = NBRANCH;
+  int64_t   *submap;
+  int       status;
 
   submap = NULL;
   status = RETURN_OK;
@@ -163,7 +161,7 @@ int deblend(objliststruct *objlistin, int l, objliststruct *objlistout,
       obj = objlist[k+1].obj;
       for (i=0; i<objlist[k].nobj; i++)
 	{
-	  for (m=h=0; (j=(int)ctx->son[k+xn*(i+nsonmax*h)])!=-1; h++)
+	  for (m=h=0; (j=(int64_t)ctx->son[k+xn*(i+nsonmax*h)])!=-1; h++)
 	    {
 	      if (obj[j].fdflux - obj[j].thresh * obj[j].fdnpix > value0)
 		m++;
@@ -171,7 +169,7 @@ int deblend(objliststruct *objlistin, int l, objliststruct *objlistout,
 	    }
 	  if (m>1)
 	    {
-	      for (h=0; (j=(int)ctx->son[k+xn*(i+nsonmax*h)])!=-1; h++)
+	      for (h=0; (j=(int64_t)ctx->son[k+xn*(i+nsonmax*h)])!=-1; h++)
 		if (ctx->ok[k+1+xn*j] &&
 		    obj[j].fdflux - obj[j].thresh * obj[j].fdnpix > value0)
 		  {
@@ -218,7 +216,7 @@ int deblend(objliststruct *objlistin, int l, objliststruct *objlistout,
 /*
 Allocate the memory allocated by global pointers in refine.c
 */
-int allocdeblend(int deblend_nthresh, int w, int h, deblendctx *ctx)
+int allocdeblend(int deblend_nthresh, int64_t w, int64_t h, deblendctx *ctx)
 {
   int status=RETURN_OK;
   memset(ctx, 0, sizeof(deblendctx));
@@ -263,8 +261,9 @@ int gatherup(objliststruct *objlistin, objliststruct *objlistout)
 
   pliststruct *pixelin = objlistin->plist, *pixelout, *pixt,*pixt2;
 
-  int         i,k,l, *n, iclst, npix, bmwidth,
-              nobj = objlistin->nobj, xs,ys, x,y, status;
+  int64_t     i,k,l, *n, iclst, npix, bmwidth,
+              nobj = objlistin->nobj, xs,ys, x,y;
+  int         status;
 
   bmp = NULL;
   amp = p = NULL;
@@ -275,7 +274,7 @@ int gatherup(objliststruct *objlistin, objliststruct *objlistout)
 
   QMALLOC(amp, float, nobj, status);
   QMALLOC(p, float, nobj, status);
-  QMALLOC(n, int, nobj, status);
+  QMALLOC(n, int64_t, nobj, status);
 
   for (i=1; i<nobj; i++)
     analyse(i, objlistin, 0, 0.0);
@@ -388,7 +387,7 @@ int belong(int corenb, objliststruct *coreobjlist,
               *sobj = &(shellobjlist->obj[shellnb]);
   pliststruct *cpl = coreobjlist->plist, *spl = shellobjlist->plist, *pixt;
 
-  int         xc=PLIST(cpl+cobj->firstpix,x), yc=PLIST(cpl+cobj->firstpix,y);
+  int64_t     xc=PLIST(cpl+cobj->firstpix,x), yc=PLIST(cpl+cobj->firstpix,y);
 
   for (pixt = spl+sobj->firstpix; pixt>=spl; pixt = spl+PLIST(pixt,nextpix))
     if ((PLIST(pixt,x) == xc) && (PLIST(pixt,y) == yc))
@@ -402,12 +401,12 @@ int belong(int corenb, objliststruct *coreobjlist,
 /*
 Create pixel-index submap for deblending.
 */
-int *createsubmap(objliststruct *objlistin, int no,
-		  int *subx, int *suby, int *subw, int *subh)
+int64_t *createsubmap(objliststruct *objlistin, int64_t no,
+		  int64_t *subx, int64_t *suby, int64_t *subw, int64_t *subh)
 {
   objstruct	*obj;
   pliststruct	*pixel, *pixt;
-  int		i, n, xmin,ymin, w, *pix, *pt, *submap;
+  int64_t		i, n, xmin,ymin, w, *pix, *pt, *submap;
 
   obj = objlistin->obj+no;
   pixel = objlistin->plist;
@@ -418,7 +417,7 @@ int *createsubmap(objliststruct *objlistin, int no,
   *subh = obj->ymax - ymin + 1;
 
   n = w**subh;
-  if (!(submap = pix = malloc(n*sizeof(int))))
+  if (!(submap = pix = malloc(n*sizeof(int64_t))))
     return NULL;
   pt = pix;
   for (i=n; i--;)

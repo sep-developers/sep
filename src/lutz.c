@@ -38,10 +38,11 @@ void lutzsort(infostruct *, objliststruct *);
 /*
 Allocate once for all memory space for buffers used by lutz().
 */
-int lutzalloc(int width, int height, lutzbuffers *buffers)
+int lutzalloc(int64_t width, int64_t height, lutzbuffers *buffers)
 {
-  int *discant;
-  int stacksize, i, status=RETURN_OK;
+  int64_t *discant;
+  int64_t stacksize, i;
+  int status=RETURN_OK;
 
   memset(buffers, 0, sizeof(lutzbuffers));
 
@@ -53,9 +54,9 @@ int lutzalloc(int width, int height, lutzbuffers *buffers)
   QMALLOC(buffers->store, infostruct, stacksize, status);
   QMALLOC(buffers->marker, char, stacksize, status);
   QMALLOC(buffers->psstack, pixstatus, stacksize, status);
-  QMALLOC(buffers->start, int, stacksize, status);
-  QMALLOC(buffers->end, int, stacksize, status);
-  QMALLOC(buffers->discan, int, stacksize, status);
+  QMALLOC(buffers->start, int64_t, stacksize, status);
+  QMALLOC(buffers->end, int64_t, stacksize, status);
+  QMALLOC(buffers->discan, int64_t, stacksize, status);
   discant = buffers->discan;
   for (i=stacksize; i--;)
     *(discant++) = -1;
@@ -101,20 +102,20 @@ C implementation of R.K LUTZ' algorithm for the extraction of 8-connected pi-
 xels in an image
 */
 int lutz(pliststruct *plistin,
-	 int *objrootsubmap, int subx, int suby, int subw,
+	 int64_t *objrootsubmap, int64_t subx, int64_t suby, int64_t subw,
 	 objstruct *objparent, objliststruct *objlist, int minarea,
 	 lutzbuffers *buffers)
 {
   infostruct	curpixinfo;
   objstruct		*obj;
-  pliststruct		*plist,*pixel, *plistint;
+  pliststruct	*plist,*pixel, *plistint;
 
   char			newmarker;
-  int			cn, co, luflag, pstop, xl,xl2,yl,
-                        out, deb_maxarea, stx,sty,enx,eny, step,
-                        nobjm = NOBJ,
-			inewsymbol, *iscan;
-  short		        trunflag;
+  int64_t		cn, co, luflag, pstop, xl,xl2,yl,
+                out, deb_maxarea, stx,sty,enx,eny, step,
+                nobjm = NOBJ,
+				inewsymbol, *iscan;
+  short		    trunflag;
   PIXTYPE		thresh;
   pixstatus		cs, ps;
 
@@ -259,7 +260,7 @@ int lutz(pliststruct *plistin,
 		    {
 		      if (buffers->start[co] == UNKNOWN)
 			{
-			  if ((int)buffers->info[co].pixnb >= deb_maxarea)
+			  if ((int64_t)buffers->info[co].pixnb >= deb_maxarea)
 			    {
 			      if (objlist->nobj>=nobjm)
 				if (!(obj = objlist->obj = (objstruct *)

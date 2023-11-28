@@ -74,11 +74,11 @@ typedef struct {
   int ndtype;        /* element type of noise     */
   int mdtype;        /* element type of mask      */
   int sdtype;        /* element type of segmap    */
-  int *segids;       /* unique ids in segmap */
-  int *idcounts;     /* counts of unique ids in segmap  */
-  int numids;        /* total number of unique ids in segmap */
-  int w;             /* array width               */
-  int h;             /* array height              */
+  int64_t *segids;       /* unique ids in segmap */
+  int64_t *idcounts;     /* counts of unique ids in segmap  */
+  int64_t numids;        /* total number of unique ids in segmap */
+  int64_t w;             /* array width               */
+  int64_t h;             /* array height              */
   double noiseval;   /* scalar noise value; used only if noise == NULL */
   short noise_type;  /* interpretation of noise value                  */
   double gain;       /* (poisson counts / data unit)                   */
@@ -91,10 +91,10 @@ typedef struct {
  * and its noise with splines.
  */
 typedef struct {
-  int w, h;          /* original image width, height */
-  int bw, bh;        /* single tile width, height */
-  int nx, ny;        /* number of tiles in x, y */
-  int n;             /* nx*ny */
+  int64_t w, h;          /* original image width, height */
+  int64_t bw, bh;        /* single tile width, height */
+  int64_t nx, ny;        /* number of tiles in x, y */
+  int64_t n;             /* nx*ny */
   float global;      /* global mean */
   float globalrms;   /* global sigma */
   float *back;       /* node data for interpolation */
@@ -111,10 +111,10 @@ typedef struct {
 typedef struct {
   int    nobj;                 /* number of objects (length of all arrays) */
   float	 *thresh;              /* threshold (ADU)                          */
-  int	 *npix;                 /* # pixels extracted (size of pix array)   */
-  int    *tnpix;                /* # pixels above thresh (unconvolved)      */
-  int	 *xmin, *xmax;
-  int    *ymin, *ymax;
+  int64_t *npix;                 /* # pixels extracted (size of pix array)   */
+  int64_t *tnpix;                /* # pixels above thresh (unconvolved)      */
+  int64_t *xmin, *xmax;
+  int64_t *ymin, *ymax;
   double *x, *y;                 /* barycenter (first moments)               */
   double *x2, *y2, *xy;		 /* second moments                           */
   double *errx2, *erry2, *errxy;      /* second moment errors            */
@@ -124,13 +124,13 @@ typedef struct {
   float	 *flux;      		 /* total flux of pixels (unconvolved)       */
   float  *cpeak;                /* peak intensity (ADU) (convolved)         */
   float  *peak;                 /* peak intensity (ADU) (unconvolved)       */
-  int    *xcpeak, *ycpeak;       /* x, y coords of peak (convolved) pixel    */
-  int    *xpeak, *ypeak;         /* x, y coords of peak (unconvolved) pixel  */
+  int64_t *xcpeak, *ycpeak;       /* x, y coords of peak (convolved) pixel    */
+  int64_t *xpeak, *ypeak;         /* x, y coords of peak (unconvolved) pixel  */
   short	 *flag;                 /* extraction flags                         */
-  int    **pix;             /* array giving indicies of object's pixels in   */
+  int64_t **pix;             /* array giving indicies of object's pixels in   */
                             /* image (linearly indexed). Length is `npix`.  */
                             /* (pointer to within the `objectspix` buffer)  */
-  int    *objectspix;      /* buffer holding pixel indicies for all objects */
+  int64_t *objectspix;      /* buffer holding pixel indicies for all objects */
 } sep_catalog;
 
 
@@ -153,8 +153,8 @@ typedef struct {
  * - fthresh = 0.0
  */
 SEP_API int sep_background(const sep_image *image,
-                   int bw, int bh,   /* size of a single background tile */
-                   int fw, int fh,   /* filter size in tiles             */
+                   int64_t bw, int64_t bh,   /* size of a single background tile */
+                   int64_t fw, int64_t fh,   /* filter size in tiles             */
                    double fthresh,   /* filter threshold                 */
                    sep_bkg **bkg);   /* OUTPUT                           */
 
@@ -172,7 +172,7 @@ SEP_API float sep_bkg_globalrms(const sep_bkg *bkg);
  * Return background at (x, y).
  * Unlike other routines, this uses simple linear interpolation.
  */
-SEP_API float sep_bkg_pix(const sep_bkg *bkg, int x, int y);
+SEP_API float sep_bkg_pix(const sep_bkg *bkg, int64_t x, int64_t y);
 
 
 /* sep_bkg_[sub,rms]line()
@@ -182,9 +182,9 @@ SEP_API float sep_bkg_pix(const sep_bkg *bkg, int x, int y);
  * The second function subtracts the background from the input array.
  * Line must be an array with same width as original image.
  */
-SEP_API int sep_bkg_line(const sep_bkg *bkg, int y, void *line, int dtype);
-SEP_API int sep_bkg_subline(const sep_bkg *bkg, int y, void *line, int dtype);
-SEP_API int sep_bkg_rmsline(const sep_bkg *bkg, int y, void *line, int dtype);
+SEP_API int sep_bkg_line(const sep_bkg *bkg, int64_t y, void *line, int dtype);
+SEP_API int sep_bkg_subline(const sep_bkg *bkg, int64_t y, void *line, int dtype);
+SEP_API int sep_bkg_rmsline(const sep_bkg *bkg, int64_t y, void *line, int dtype);
 
 
 /* sep_bkg_[sub,rms]array()
@@ -223,17 +223,17 @@ SEP_API void sep_bkg_free(sep_bkg *bkg);
  */
 SEP_API int sep_extract(const sep_image *image,
 		float thresh,         /* detection threshold           [1.5] */
-                int thresh_type,      /* threshold units    [SEP_THRESH_REL] */
+    int thresh_type,      /* threshold units    [SEP_THRESH_REL] */
 		int minarea,          /* minimum area in pixels          [5] */
 		const float *conv,    /* convolution array (can be NULL)     */
-                                      /*               [{1 2 1 2 4 2 1 2 1}] */
-		int convw, int convh, /* w, h of convolution array     [3,3] */
-                int filter_type,      /* convolution (0) or matched (1)  [0] */
+                          /*               [{1 2 1 2 4 2 1 2 1}] */
+		int64_t convw, int64_t convh, /* w, h of convolution array     [3,3] */
+    int filter_type,      /* convolution (0) or matched (1)  [0] */
 		int deblend_nthresh,  /* deblending thresholds          [32] */
 		double deblend_cont,  /* min. deblending contrast    [0.005] */
 		int clean_flag,       /* perform cleaning?               [1] */
 		double clean_param,   /* clean parameter               [1.0] */
-                sep_catalog **catalog); /* OUTPUT catalog                    */
+    sep_catalog **catalog); /* OUTPUT catalog                    */
 
 
 
@@ -312,7 +312,7 @@ SEP_API int sep_sum_ellipann(const sep_image *image,
  * flag:     Output flag (non-array).
  */
 SEP_API int sep_sum_circann_multi(const sep_image *im,
-			  double x, double y, double rmax, int n, int id, int subpix,
+			  double x, double y, double rmax, int64_t n, int id, int subpix,
                           short inflag,
 			  double *sum, double *sumvar, double *area,
 			  double *maskarea, short *flag);
@@ -333,7 +333,7 @@ SEP_API int sep_sum_circann_multi(const sep_image *im,
  */
 SEP_API int sep_flux_radius(const sep_image *im,
 		    double x, double y, double rmax, int id, int subpix, short inflag,
-		    const double *fluxtot, const double *fluxfrac, int n,
+		    const double *fluxtot, const double *fluxfrac, int64_t n,
 		    double *r, short *flag);
 
 /* sep_kron_radius()
@@ -380,7 +380,7 @@ SEP_API int sep_windowed(const sep_image *im,
  *
  * Ellipse: cxx*(x'-x)^2 + cyy*(y'-y)^2 + cxy*(x'-x)*(y'-y) = r^2
  */
-SEP_API void sep_set_ellipse(unsigned char *arr, int w, int h,
+SEP_API void sep_set_ellipse(unsigned char *arr, int64_t w, int64_t h,
 		     double x, double y, double cxx, double cyy, double cxy,
 		     double r, unsigned char val);
 

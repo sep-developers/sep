@@ -15,7 +15,7 @@ from cpython.version cimport PY_MAJOR_VERSION
 
 np.import_array()  # To access the numpy C-API.
 
-__version__ = "1.3.0dev"
+__version__ = "1.3.0dev1"
 
 # -----------------------------------------------------------------------------
 # Definitions from the SEP C library
@@ -69,31 +69,31 @@ cdef extern from "sep.h":
         int ndtype
         int mdtype
         int sdtype
-        int *segids
-        int *idcounts
-        int numids
-        int w
-        int h
+        np.int64_t *segids
+        np.int64_t *idcounts
+        np.int64_t numids
+        np.int64_t w
+        np.int64_t h
         double noiseval
         short noise_type
         double gain
         double maskthresh
 
     ctypedef struct sep_bkg:
-        int w
-        int h
+        np.int64_t w
+        np.int64_t h
         float globalback
         float globalrms
 
     ctypedef struct sep_catalog:
-        int    nobj
-        float  *thresh
-        int    *npix
-        int    *tnpix
-        int    *xmin
-        int    *xmax
-        int    *ymin
-        int    *ymax
+        np.int64_t  nobj
+        float       *thresh
+        np.int64_t  *npix
+        np.int64_t  *tnpix
+        np.int64_t  *xmin
+        np.int64_t  *xmax
+        np.int64_t  *ymin
+        np.int64_t  *ymax
         double *x
         double *y
         double *x2
@@ -112,17 +112,17 @@ cdef extern from "sep.h":
         float  *flux
         float  *cpeak
         float  *peak
-        int    *xcpeak
-        int    *ycpeak
-        int    *xpeak
-        int    *ypeak
-        short  *flag
-        int    **pix
-        int    *objectspix
+        np.int64_t  *xcpeak
+        np.int64_t  *ycpeak
+        np.int64_t  *xpeak
+        np.int64_t  *ypeak
+        short       *flag
+        np.int64_t  **pix
+        np.int64_t  *objectspix
 
     int sep_background(const sep_image *im,
-                       int bw, int bh,
-                       int fw, int fh,
+                       np.int64_t bw, np.int64_t bh,
+                       np.int64_t fw, np.int64_t fh,
                        double fthresh,
                        sep_bkg **bkg)
 
@@ -138,7 +138,7 @@ cdef extern from "sep.h":
                     int thresh_type,
                     int minarea,
                     float *conv,
-                    int convw, int convh,
+                    np.int64_t convw, np.int64_t convh,
                     int filter_type,
                     int deblend_nthresh,
                     double deblend_cont,
@@ -193,7 +193,7 @@ cdef extern from "sep.h":
     void sep_ellipse_coeffs(double a, double b, double theta,
                             double *cxx, double *cyy, double *cxy)
 
-    void sep_set_ellipse(unsigned char *arr, int w, int h,
+    void sep_set_ellipse(unsigned char *arr, np.int64_t w, np.int64_t h,
                          double x, double y,
                          double cxx, double cyy, double cxy, double r,
                          unsigned char val)
@@ -230,7 +230,7 @@ cdef int _get_sep_dtype(dtype) except -1:
     raise ValueError('input array dtype not supported: {0}'.format(dtype))
 
 
-cdef int _check_array_get_dims(np.ndarray arr, int *w, int *h) except -1:
+cdef int _check_array_get_dims(np.ndarray arr, np.int64_t *w, np.int64_t *h) except -1:
     """Check some things about an array and return dimensions"""
 
     # Raise an informative message if array is not C-contiguous
@@ -297,7 +297,7 @@ cdef int _parse_arrays(np.ndarray data, err, var, mask, segmap,
     """Helper function for functions accepting data, error, mask & segmap arrays.
     Fills in an sep_image struct."""
 
-    cdef int ew, eh, mw, mh, sw, sh
+    cdef np.int64_t ew, eh, mw, mh, sw, sh
     cdef np.uint8_t[:,:] buf, ebuf, mbuf, sbuf
 
     # Clear im fields we might not touch (everything besides data, dtype, w, h)
@@ -521,7 +521,8 @@ cdef class Background:
             that of the original image used to measure the background.
         """
 
-        cdef int w, h, status, sep_dtype
+        cdef np.int64_t w, h
+        cdef int status, sep_dtype
         cdef np.uint8_t[:, :] buf
 
         assert self.ptr is not NULL
@@ -556,12 +557,12 @@ cdef class Background:
 # This needs to match the result from extract
 cdef packed struct Object:
     np.float64_t thresh
-    np.int_t npix
-    np.int_t tnpix
-    np.int_t xmin
-    np.int_t xmax
-    np.int_t ymin
-    np.int_t ymax
+    np.int64_t npix
+    np.int64_t tnpix
+    np.int64_t xmin
+    np.int64_t xmax
+    np.int64_t ymin
+    np.int64_t ymax
     np.float64_t x
     np.float64_t y
     np.float64_t x2
@@ -580,16 +581,18 @@ cdef packed struct Object:
     np.float64_t errx2
     np.float64_t erry2
     np.float64_t errxy
-    np.int_t xcpeak
-    np.int_t ycpeak
-    np.int_t xpeak
-    np.int_t ypeak
+    np.int64_t xcpeak
+    np.int64_t ycpeak
+    np.int64_t xpeak
+    np.int64_t ypeak
     np.int_t flag
 
 default_kernel = np.array([[1.0, 2.0, 1.0],
                            [2.0, 4.0, 2.0],
                            [1.0, 2.0, 1.0]], dtype=np.float32)
 
+@cython.boundscheck(False)
+@cython.wraparound(False)
 def extract(np.ndarray data not None, float thresh, err=None, var=None,
             gain=None, np.ndarray mask=None, double maskthresh=0.0,
             int minarea=5,
@@ -699,9 +702,9 @@ def extract(np.ndarray data not None, float thresh, err=None, var=None,
     cdef float *kernelptr
     cdef np.int32_t[:, :] segmap_buf
     cdef np.int32_t *segmap_ptr
-    cdef int *objpix
+    cdef np.int64_t *objpix
     cdef sep_image im
-    cdef np.int32_t[:] idbuf, countbuf
+    cdef np.int64_t[:] idbuf, countbuf
 
     # parse arrays
     if type(segmentation_map) is np.ndarray:
@@ -711,13 +714,13 @@ def extract(np.ndarray data not None, float thresh, err=None, var=None,
 
         # Remove non-object IDs:
         filter_ids = ids>0
-        segids = np.ascontiguousarray(ids[filter_ids].astype(dtype=np.int32))
-        idcounts = np.ascontiguousarray(counts[filter_ids].astype(dtype=np.int32))
+        segids = np.ascontiguousarray(ids[filter_ids].astype(dtype=np.int64))
+        idcounts = np.ascontiguousarray(counts[filter_ids].astype(dtype=np.int64))
 
-        idbuf = segids.view(dtype=np.int32)
-        countbuf = idcounts.view(dtype=np.int32)
-        im.segids = <int*>&idbuf[0]
-        im.idcounts = <int*>&countbuf[0]
+        idbuf = segids.view(dtype=np.int64)
+        countbuf = idcounts.view(dtype=np.int64)
+        im.segids = <np.int64_t*>&idbuf[0]
+        im.idcounts = <np.int64_t*>&countbuf[0]
         im.numids = len(segids)
     else:
         _parse_arrays(data, err, var, mask, None, &im)
@@ -760,12 +763,12 @@ def extract(np.ndarray data not None, float thresh, err=None, var=None,
     # Allocate result record array and fill it
     result = np.empty(catalog.nobj,
                       dtype=np.dtype([('thresh', np.float64),
-                                      ('npix', np.int_),
-                                      ('tnpix', np.int_),
-                                      ('xmin', np.int_),
-                                      ('xmax', np.int_),
-                                      ('ymin', np.int_),
-                                      ('ymax', np.int_),
+                                      ('npix', np.int64),
+                                      ('tnpix', np.int64),
+                                      ('xmin', np.int64),
+                                      ('xmax', np.int64),
+                                      ('ymin', np.int64),
+                                      ('ymax', np.int64),
                                       ('x', np.float64),
                                       ('y', np.float64),
                                       ('x2', np.float64),
@@ -784,11 +787,11 @@ def extract(np.ndarray data not None, float thresh, err=None, var=None,
                                       ('flux', np.float64),
                                       ('cpeak', np.float64),
                                       ('peak', np.float64),
-                                      ('xcpeak', np.int_),
-                                      ('ycpeak', np.int_),
-                                      ('xpeak', np.int_),
-                                      ('ypeak', np.int_),
-                                      ('flag', np.int_)]))
+                                      ('xcpeak', np.int64),
+                                      ('ycpeak', np.int64),
+                                      ('xpeak', np.int64),
+                                      ('ypeak', np.int64),
+                                      ('flag', np.int64)]))
 
     for i in range(catalog.nobj):
         result['thresh'][i] = catalog.thresh[i]
@@ -1726,7 +1729,7 @@ def mask_ellipse(np.ndarray arr not None, x, y, a=None, b=None, theta=None,
         Scale factor of ellipse(s). Default is 1.
     """
 
-    cdef int w, h
+    cdef np.int64_t w, h
     cdef np.uint8_t[:,:] buf
     cdef double cxx_, cyy_, cxy_
 

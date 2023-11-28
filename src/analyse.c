@@ -107,8 +107,8 @@ void  preanalyse(int no, objliststruct *objlist)
   pliststruct	*pixel = objlist->plist, *pixt;
   PIXTYPE	peak, cpeak, val, cval;
   double	rv;
-  int		x, y, xmin,xmax, ymin,ymax, fdnpix;
-  int           xpeak, ypeak, xcpeak, ycpeak;
+  int64_t		x, y, xmin,xmax, ymin,ymax, fdnpix;
+  int64_t           xpeak, ypeak, xcpeak, ycpeak;
 
   /*-----  initialize stacks and bounds */
   fdnpix = 0;
@@ -149,7 +149,7 @@ void  preanalyse(int no, objliststruct *objlist)
       fdnpix++;
     }
 
-  obj->fdnpix = (LONG)fdnpix;
+  obj->fdnpix = fdnpix;
   obj->fdflux = (float)rv;
   obj->fdpeak = cpeak;
   obj->dpeak = peak;
@@ -178,7 +178,7 @@ void  analyse(int no, objliststruct *objlist, int robust, double gain)
 		xm,ym, xm2,ym2,xym,
                 temp,temp2, theta,pmx2,pmy2,
                 errx2, erry2, errxy, cvar, cvarsum;
-  int		x, y, xmin, ymin, area2, dnpix;
+  int64_t		x, y, xmin, ymin, area2, dnpix;
 
   preanalyse(no, objlist);
 
