@@ -1,3 +1,12 @@
+IMPORTANT
+---------
+
+This repository (all versions >= 1.3) was forked from https://github.com/kbarbary/sep in November 2023, as the original library no longer appears to be maintained. The current version can be installed by cloning this repository, and running 
+```
+python -m pip install .
+```
+Changes are described in [CHANGES.md](./CHANGES.md), with all other documentation remaining unaltered.
+
 SEP
 ===
 

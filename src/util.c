@@ -24,7 +24,7 @@
 
 #define DETAILSIZE 512
 
-const char *const sep_version_string = "1.3.0dev1";
+const char *const sep_version_string = "1.3.0";
 static _Thread_local char _errdetail_buffer[DETAILSIZE] = "";
 
 /****************************************************************************/
@@ -42,7 +42,7 @@ PIXTYPE convert_flt(const void *ptr)
 
 PIXTYPE convert_int(const void *ptr)
 {
-  return *(const int64_t *)ptr;
+  return *(const int *)ptr;
 }
 
 PIXTYPE convert_byt(const void *ptr)
@@ -164,10 +164,10 @@ void write_array_dbl(const float *ptr, int64_t n, void *target)
 
 void write_array_int(const float *ptr, int64_t n, void *target)
 {
-  int64_t *t = target;
+  int *t = target;
   int64_t i;
   for (i=0; i<n; i++, ptr++)
-    t[i] = (int64_t)(*ptr+0.5);
+    t[i] = (int)(*ptr+0.5);
 }
 
 /* return the correct writer depending on the datatype code */
@@ -214,10 +214,10 @@ void subtract_array_flt(const float *ptr, int64_t n, void *target)
 
 void subtract_array_int(const float *ptr, int64_t n, void *target)
 {
-  int64_t *t = target;
+  int *t = target;
   int64_t i;
   for (i=0; i<n; i++, ptr++)
-    t[i] -= (int64_t)(*ptr+0.5);
+    t[i] -= (int)(*ptr+0.5);
 }
 
 /* return the correct subtractor depending on the datatype code */

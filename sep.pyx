@@ -15,7 +15,7 @@ from cpython.version cimport PY_MAJOR_VERSION
 
 np.import_array()  # To access the numpy C-API.
 
-__version__ = "1.3.0dev1"
+__version__ = "1.3.0"
 
 # -----------------------------------------------------------------------------
 # Definitions from the SEP C library
@@ -791,7 +791,7 @@ def extract(np.ndarray data not None, float thresh, err=None, var=None,
                                       ('ycpeak', np.int64),
                                       ('xpeak', np.int64),
                                       ('ypeak', np.int64),
-                                      ('flag', np.int64)]))
+                                      ('flag', np.int_)]))
 
     for i in range(catalog.nobj):
         result['thresh'][i] = catalog.thresh[i]
