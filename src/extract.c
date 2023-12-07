@@ -60,6 +60,7 @@ int segsortit(infostruct *info, objliststruct *objlist,
            objliststruct *finalobjlist, double gain);
 void plistinit(int hasconv, int hasvar);
 void clean(objliststruct *objlist, double clean_param, int *survives);
+PIXTYPE get_mean_thresh(infostruct *info, pliststruct *pixel);
 int convert_to_catalog(objliststruct *objlist, const int *survives,
                        sep_catalog *cat, int64_t w, int include_pixels);
 
@@ -676,7 +677,11 @@ int sep_extract(const sep_image *image, float thresh, int thresh_type,
               if (start[co] == UNKNOWN) {
 			          if ((int64_t)info[co].pixnb >= minarea) {
 			            /* update threshold before object is processed */
-			            objlist.thresh = thresh;
+			            if (PLISTEXIST(thresh)) {
+                    objlist.thresh = get_mean_thresh(&info[co], objlist.plist);
+                  } else {
+                    objlist.thresh = thresh;
+                  }
 
 			            status = sortit(&info[co], &objlist, minarea,
                                   finalobjlist, deblend_nthresh,
@@ -810,7 +815,7 @@ int segsortit(infostruct *info, objliststruct *objlist,
   obj.lastpix = info->lastpix;
   obj.flag = info->flag;
 
-  obj.thresh = PLISTPIX(objlist->plist+info->lastpix, thresh);
+  obj.thresh = get_mean_thresh(info, objlist->plist);
 
   analyse(0, objlist, 1, gain);
 
@@ -1070,6 +1075,23 @@ void clean(objliststruct *objlist, double clean_param, int *survives)
 
 	} /* inner loop over objlist (obj2) */
     } /* outer loop of objlist (obj1) */
+}
+
+/************************** get_mean_thresh **********************************/
+/* Compute an average threshold from all pixels in the cluster */
+
+PIXTYPE get_mean_thresh(infostruct *info, pliststruct *pixel)
+{
+  pliststruct   *pixt;
+  int           pix_accum=0;
+  PIXTYPE       thresh_accum=0;
+
+  for (pixt=pixel+info->firstpix; pixt>=pixel; pixt=pixel+PLIST(pixt,nextpix)) {
+    thresh_accum += PLISTPIX(pixt,thresh);
+    pix_accum++;
+  }
+
+  return thresh_accum / pix_accum;
 }
 
 

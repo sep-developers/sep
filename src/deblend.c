@@ -88,8 +88,6 @@ int deblend(objliststruct *objlistin, objliststruct *objlistout,
    * The submap is used in lutz(). We create it here because we may call
    * lutz multiple times below, and we only want to create it once.
    */
-  printf("L=%ld", l);
-  fflush(stdout);
   submap = createsubmap(objlistin, l, &subx, &suby, &subw, &subh);
   if (!submap)
     {
