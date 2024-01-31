@@ -54,3 +54,6 @@ sep.c
 
 # tox
 .tox
+
+# version
+*_version.py

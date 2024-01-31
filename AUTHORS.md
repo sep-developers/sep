@@ -8,3 +8,5 @@
 * Joe Lyman (@lyalpha): Make deblending limit settable
 * Michael Wuertenberger (@mworion): PyPI wheels
 * Ingvar Stepanyan (@rreverser): Build system, public API and thread safety fixes.
+* Gabe Brammer (@gbrammer): Fix memory addressing with large arrays.
+* Peter Watson (@PJ-Watson): Add extraction from existing segmentation map.

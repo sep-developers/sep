@@ -86,7 +86,7 @@ Building the development version (from github) requires Cython.
 Build and install in the usual place:
 
 ```
-./setup.py install
+python -m pip install --editable .
 ```
 
 **Run tests:** Tests require the [pytest](http://pytest.org) Python

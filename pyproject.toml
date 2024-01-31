@@ -1,3 +1,76 @@
 [build-system]
-requires = ["setuptools", "wheel", "oldest-supported-numpy", "Cython"]
+requires = ["setuptools>=61.0", "wheel", "oldest-supported-numpy", "Cython", "setuptools_scm>=8.0"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "sep"
+dynamic = ["version"]
+authors = [
+  { name="Emmanuel Bertin"},
+  { name="Kyle Barbary"},
+  { name="Kyle Boone"},
+  { name="Thomas Robitaille"},
+  { name="Matt Craig"},
+  { name="Curtis McCully"},
+  { name="Evert Rol"},
+  { name="Joe Lyman"},
+  { name="Michael Wuertenberger"},
+  { name="Ingvar Stepanyan"},
+  { name="Gabe Brammer"},
+  { name="Peter Watson", email="peter.watson+pyGFE@inaf.it" },
+]
+maintainers = [
+  { name="Peter Watson", email="peter.watson+pyGFE@inaf.it" },
+]
+description="Astronomical source extraction and photometry library"
+readme = "README.md"
+license = { text =  "LGPLv3+" }
+classifiers=[
+    "Development Status :: 5 - Production/Stable",
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)",
+    "Topic :: Scientific/Engineering :: Astronomy",
+    "Intended Audience :: Science/Research",
+]
+requires-python = ">=3.9"
+dependencies = [
+    "numpy>=1.23"
+]
+
+[project.urls]
+"Homepage" = "https://github.com/PJ-Watson/sep"
+"Bug Tracker" = "https://github.com/PJ-Watson/sep/issues"
+"(Old) Documentation" = "http://sep.readthedocs.org"
+
+[tool.setuptools_scm]
+version_file = "src/_version.py"
+
+# [tool.black]
+# line-length = 88
+# target-version = ['py311']
+# extend-exclude = '(.*.txt|.*.md|.*.toml|.*.odg)'
+# preview = true
+
+# [tool.isort]
+# profile = "black"
+
+# [tool.numpydoc_validation]
+# checks = [
+#     "all",   # report on all checks, except the below
+#     "EX01",
+#     "SA01",
+#     "ES01",
+# ]
+# exclude = [  # don't report on objects that match any of these regex
+#     '\.undocumented_method$',
+#     '\.__repr__$',
+#     '\._.*$',  # Ignore anything that's private (e.g., starts with _)
+#     'seg_map_viewer*',
+#     'qt_utils*',
+#     'GUI_main*',
+# ]
+# override_SS05 = [  # override SS05 to allow docstrings starting with these words
+#     '^Process ',
+#     '^Assess ',
+#     '^Access ',
+# ]
