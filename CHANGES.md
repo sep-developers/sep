@@ -1,14 +1,14 @@
 v1.3.0 (1 December 2023)
 ====================
 
-* The `segmentation_map` argument of `sep.extract()` will now accept either an 
-  array or boolean. If an existing segmentation map is passed, the object 
-  detection stage is skipped, and sources will be individually analysed 
-  according to the provided map. This change is backwards-compatible with 
+* The `segmentation_map` argument of `sep.extract()` will now accept either an
+  array or boolean. If an existing segmentation map is passed, the object
+  detection stage is skipped, and sources will be individually analysed
+  according to the provided map. This change is backwards-compatible with
   respect to the Python module.
-  
-  Please note that as no deblending is performed, 
-  the calculated thresholds (and any dependent parameters) may not be the same 
+
+  Please note that as no deblending is performed,
+  the calculated thresholds (and any dependent parameters) may not be the same
   as originally derived.
 
 * Use 64-bit integers throughout, to fix memory addressing with large arrays ([#122](https://github.com/kbarbary/sep/issues/122 "Original issue"), inspired by [Gabe Brammer's fork](https://github.com/gbrammer/sep) with additional fixes).

@@ -1,7 +1,7 @@
 IMPORTANT
 ---------
 
-This repository (all versions >= 1.3) was forked from https://github.com/kbarbary/sep in November 2023, as the original library no longer appears to be maintained. The current version can be installed by cloning this repository, and running 
+This repository (all versions >= 1.3) was forked from https://github.com/kbarbary/sep in November 2023, as the original library no longer appears to be maintained. The current version can be installed by cloning this repository, and running
 ```
 python -m pip install .
 ```
@@ -16,7 +16,7 @@ Python and C library for Source Extraction and Photometry
 [![PyPI](https://img.shields.io/pypi/v/sep.svg)](https://pypi.python.org/pypi/sep)
 [![JOSS](http://joss.theoj.org/papers/10.21105/joss.00058/status.svg)](http://dx.doi.org/10.21105/joss.00058)
 
-*"... [it's] an SEP: Somebody Else's Problem."  
+*"... [it's] an SEP: Somebody Else's Problem."
 "Oh, good. I can relax then."*
 
 
@@ -188,7 +188,7 @@ executable built on top of the library. In Source Extractor, background
 estimation, object detection and photometry are deeply integrated into the
 Source Extractor executable. Many changes to the code were necessary in
 order to put the functionality in stand-alone C functions. It's too much
-to ask of the Source Extractor developer to rewrite large parts of the 
+to ask of the Source Extractor developer to rewrite large parts of the
 core of the Source Extractor program with little gain for the executable.
 
 **What sort of changes?**

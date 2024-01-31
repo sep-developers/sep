@@ -38,7 +38,7 @@ that the Poisson uncertainty on the total sum should be included. Some
 illustrative examples::
 
    # Specify a per-pixel "background" error and a gain. This is suitable
-   # when the data have been background subtracted. 
+   # when the data have been background subtracted.
    flux, fluxerr, flag = sep.sum_circle(data, objs['x'], objs['y'], 3.0,
                                         err=bkg.globalrms, gain=1.0)
 
@@ -73,7 +73,7 @@ noise in each pixel, :math:`F` is the sum in the aperture and
 :math:`g` is the gain. The last term is not added if ``gain`` is
 `None`.
 
-**Masking** 
+**Masking**
 
 Apply a mask (same shape as data). Pixels where the mask is True are
 "corrected" to the average value within the aperture. ::
@@ -164,20 +164,20 @@ of 0.5 and a normalizing flux of ``FLUX_AUTO``. The equivalent here is::
 Segmentation-masked image measurements
 --------------------------------------
 
-SourceExtractor provides a mechanism for measuring the "AUTO" and "FLUX_RADIUS" parameters for a given object including a mask for neighboring sources.  In addition to the mask, setting the SourceExtractor parameter ``MASK_TYPE=CORRECT`` further fills the masked pixels of a given source with "good" pixel values reflected opposite of the masked pixels.  The ``SEP`` photometry and measurement functions provide an option for simple masking without reflection or subtracting neighbor flux.  
+SourceExtractor provides a mechanism for measuring the "AUTO" and "FLUX_RADIUS" parameters for a given object including a mask for neighboring sources.  In addition to the mask, setting the SourceExtractor parameter ``MASK_TYPE=CORRECT`` further fills the masked pixels of a given source with "good" pixel values reflected opposite of the masked pixels.  The ``SEP`` photometry and measurement functions provide an option for simple masking without reflection or subtracting neighbor flux.
 
 For example, using a segmentation array provided by ``sep.extract``, we can compute the masked ``flux_radius`` that could otherwise be artificially large due to flux from nearby sources::
 
     # list of object id numbers that correspond to the segments
     seg_id = np.arange(1, len(objs)+1, dtype=np.int32)
-    
+
     r, flag = sep.flux_radius(data, objs['x'], objs['y'], 6.*objs['a'], 0.5,
-                              seg_id=seg_id, seg=seg, 
+                              seg_id=seg_id, seg=seg,
                               normflux=flux, subpix=5)
 
 To enforce that a given measurement **only** includes pixels within a segment, provide negative values in the ``seg_id`` list.  Otherwise the mask for a given object will be pixels with ``(seg == 0) | (seg_id == id_i)``.
 
-The following functions include the segmentation masking: ``sum_circle``, ``sum_circann``, ``sum_ellipse``, ``sum_ellipann``, ``flux_radius`` , and ``kron_radius`` (``winpos`` **currently does not**). 
+The following functions include the segmentation masking: ``sum_circle``, ``sum_circann``, ``sum_ellipse``, ``sum_ellipann``, ``flux_radius`` , and ``kron_radius`` (``winpos`` **currently does not**).
 
 Masking image regions
 ---------------------

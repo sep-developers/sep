@@ -14,7 +14,7 @@ shape. This is controlled using the ``filter_kernel`` keyword in
     objects = sep.extract(data, thresh, filter_kernel=kernel)
 
 If ``filter_kernel`` is not specified, a default 3-by-3 kernel
-is used. To disable filtering entirely, specify ``filter_kernel=None``. 
+is used. To disable filtering entirely, specify ``filter_kernel=None``.
 
 What array should be used for ``filter_kernel``? It should be
 approximately the shape of the objects you are trying to detect. For
@@ -129,7 +129,7 @@ standard deviations above the background. This gives:
 
 .. math::
     &E[(T^T N)^2] = T^T C T = \alpha^2 S^T C^{-1} C C^{-1} S = \alpha^2 S^T
-    C^{-1} S = 1 \\ 
+    C^{-1} S = 1 \\
     &\alpha = \frac{1}{\sqrt{S^T C^{-1} S}}
 
 Putting everything together, our normalized linear transformation is:
