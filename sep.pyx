@@ -6,12 +6,13 @@ Source Extraction and Photometry
 This module is a wrapper of the SEP C library.
 """
 import numpy as np
+
+cimport cython
 cimport numpy as np
+from cpython.mem cimport PyMem_Free, PyMem_Malloc
+from cpython.version cimport PY_MAJOR_VERSION
 from libc cimport limits
 from libc.math cimport sqrt
-cimport cython
-from cpython.mem cimport PyMem_Malloc, PyMem_Free
-from cpython.version cimport PY_MAJOR_VERSION
 
 np.import_array()  # To access the numpy C-API.
 

@@ -36,7 +36,7 @@ f* GNU Lesser General Public License for more details.
  * convw, convh : width and height of conv
  * buf : output convolved line (buf->dw elements long)
  */
-int convolve(arraybuffer *buf, int64_t y, const float *conv, 
+int convolve(arraybuffer *buf, int64_t y, const float *conv,
              int64_t convw, int64_t convh, PIXTYPE *out)
 {
   int64_t convw2, convn, cx, cy, i, dcx, y0;

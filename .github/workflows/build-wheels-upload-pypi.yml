@@ -69,7 +69,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     env:
       CIBW_ARCHS_MACOS: "x86_64 universal2 arm64"
-      
+
     strategy:
       max-parallel: 4
       matrix:

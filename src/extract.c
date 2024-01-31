@@ -56,7 +56,7 @@ size_t sep_get_extract_pixstack()
 int sortit(infostruct *info, objliststruct *objlist, int minarea,
            objliststruct *finalobjlist, int deblend_nthresh,
            double deblend_mincont, double gain, deblendctx *deblendctx);
-int segsortit(infostruct *info, objliststruct *objlist, 
+int segsortit(infostruct *info, objliststruct *objlist,
            objliststruct *finalobjlist, double gain);
 void plistinit(int hasconv, int hasvar);
 void clean(objliststruct *objlist, double clean_param, int *survives);
@@ -64,7 +64,7 @@ PIXTYPE get_mean_thresh(infostruct *info, pliststruct *pixel);
 int convert_to_catalog(objliststruct *objlist, const int *survives,
                        sep_catalog *cat, int64_t w, int include_pixels);
 
-int arraybuffer_init(arraybuffer *buf, const void *arr, int dtype, 
+int arraybuffer_init(arraybuffer *buf, const void *arr, int dtype,
                      int64_t w, int64_t h, int64_t bufw, int64_t bufh);
 void arraybuffer_readline(arraybuffer *buf);
 void arraybuffer_free(arraybuffer *buf);
@@ -73,7 +73,7 @@ void arraybuffer_free(arraybuffer *buf);
 
 /* initialize buffer */
 /* bufw must be less than or equal to w */
-int arraybuffer_init(arraybuffer *buf, const void *arr, int dtype, 
+int arraybuffer_init(arraybuffer *buf, const void *arr, int dtype,
                      int64_t w, int64_t h, int64_t bufw, int64_t bufh) {
   int status;
   int64_t yl;
@@ -325,7 +325,7 @@ int sep_extract(const sep_image *image, float thresh, int thresh_type,
     if (status != RETURN_OK) goto exit;
   }
   if (image->segmap) {
-    status =  arraybuffer_init(&sbuf, image->segmap, image->sdtype, w, h, 
+    status =  arraybuffer_init(&sbuf, image->segmap, image->sdtype, w, h,
                               stacksize, bufh);
     if (status != RETURN_OK)
       goto exit;
@@ -364,8 +364,8 @@ int sep_extract(const sep_image *image, float thresh, int thresh_type,
   } else {
     objlist.nobj = 1;
   }
-  curpixinfo.pixnb = 1;  
-  
+  curpixinfo.pixnb = 1;
+
   /* Init finalobjlist */
   QMALLOC(finalobjlist, objliststruct, 1, status);
   finalobjlist->obj = NULL;
@@ -523,11 +523,11 @@ int sep_extract(const sep_image *image, float thresh, int thresh_type,
               if (PLISTEXIST(thresh)) {
                 PLISTPIX(pixt, thresh) = thresh;
               };
-              
+
               if (idinfo[ididx].pixnb == 0) {
                 idinfo[ididx].firstpix = prevpix*plistsize;
                 idinfo[ididx].pixnb = 1;
-              } 
+              }
               else if (idinfo[ididx].pixnb == image->idcounts[ididx]-1) {
                 idinfo[ididx].pixnb++;
                 idinfo[ididx].lastpix = prevpix*plistsize;
@@ -536,7 +536,7 @@ int sep_extract(const sep_image *image, float thresh, int thresh_type,
                 idinfo[ididx].pixnb++;
               };
               break;
-            } 
+            }
           }
         }
       } else {

@@ -178,7 +178,7 @@ int deblend(objliststruct *objlistin, objliststruct *objlistout,
         }
       }
     }
-  
+
     if (ctx->ok[0])
       status = addobjdeep(0, &debobjlist2, objlistout);
     else

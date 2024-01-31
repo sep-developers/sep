@@ -320,7 +320,7 @@ static point circle_segment_single2(double x1, double y1, double x2, double y2)
     pt = (dx1 > dx2) ? pt2 : pt1;
   else
     pt = (dy1 > dy2) ? pt2 : pt1;
-     
+
   return pt;
 }
 
@@ -418,7 +418,7 @@ static double triangle_unitcircle_overlap(double x1, double y1,
 	  swap(&d1, &d3);
 	}
     }
-     
+
   /* Determine number of vertices inside circle */
   in1 = d1 < 1.;
   in2 = d2 < 1.;
