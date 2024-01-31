@@ -1,20 +1,26 @@
 #!/usr/bin/env py.test
-from __future__ import print_function, division
-# unicode_literals doesn't play well with numpy dtype field names
+from __future__ import division, print_function
 
 import os
-import pytest
+
 import numpy as np
-from numpy.testing import assert_allclose, assert_equal, assert_approx_equal
+import pytest
+from numpy.testing import assert_allclose, assert_approx_equal, assert_equal
+
 import sep
+
+# unicode_literals doesn't play well with numpy dtype field names
+
 
 # Try to import any FITS reader
 try:
     from fitsio import read as getdata
+
     NO_FITS = False
 except:
     try:
         from astropy.io.fits import getdata
+
         NO_FITS = False
     except:
         NO_FITS = True
@@ -23,25 +29,27 @@ IMAGE_FNAME = os.path.join("data", "image.fits")
 BACKIMAGE_FNAME = os.path.join("data", "back.fits")
 RMSIMAGE_FNAME = os.path.join("data", "rms.fits")
 IMAGECAT_FNAME = os.path.join("data", "image.cat")
-IMAGECAT_DTYPE = [('number', np.int64),
-                  ('x', np.float64),
-                  ('y', np.float64),
-                  ('xwin', np.float64),
-                  ('ywin', np.float64),
-                  ('x2', np.float64),
-                  ('y2', np.float64),
-                  ('xy', np.float64),
-                  ('errx2', np.float64),
-                  ('erry2', np.float64),
-                  ('errxy', np.float64),
-                  ('a', np.float64),
-                  ('flux_aper', np.float64),
-                  ('fluxerr_aper', np.float64),
-                  ('kron_radius', np.float64),
-                  ('flux_auto', np.float64),
-                  ('fluxerr_auto', np.float64),
-                  ('flux_radius', np.float64, (3,)),
-                  ('flags', np.int64)]
+IMAGECAT_DTYPE = [
+    ("number", np.int64),
+    ("x", np.float64),
+    ("y", np.float64),
+    ("xwin", np.float64),
+    ("ywin", np.float64),
+    ("x2", np.float64),
+    ("y2", np.float64),
+    ("xy", np.float64),
+    ("errx2", np.float64),
+    ("erry2", np.float64),
+    ("errxy", np.float64),
+    ("a", np.float64),
+    ("flux_aper", np.float64),
+    ("fluxerr_aper", np.float64),
+    ("kron_radius", np.float64),
+    ("flux_auto", np.float64),
+    ("fluxerr_auto", np.float64),
+    ("flux_radius", np.float64, (3,)),
+    ("flags", np.int64),
+]
 SUPPORTED_IMAGE_DTYPES = [np.float64, np.float32, np.int32]
 
 # If we have a FITS reader, read in the necessary test images
@@ -53,6 +61,7 @@ if not NO_FITS:
 
 # -----------------------------------------------------------------------------
 # Helpers
+
 
 def assert_allclose_structured(x, y):
     """Assert that two structured arrays are close.
@@ -77,14 +86,16 @@ def matched_filter_snr(data, noise, kernel):
         sqrt(sum(kernel[i]^2 / noise[i]^2))
     """
     ctr = kernel.shape[0] // 2, kernel.shape[1] // 2
-    kslice = ((0 - ctr[0], kernel.shape[0] - ctr[0]),  # range in axis 0
-              (0 - ctr[1], kernel.shape[1] - ctr[1]))  # range in axis 1
+    kslice = (
+        (0 - ctr[0], kernel.shape[0] - ctr[0]),  # range in axis 0
+        (0 - ctr[1], kernel.shape[1] - ctr[1]),
+    )  # range in axis 1
     out = np.empty_like(data)
 
     for y in range(data.shape[0]):
-        jmin = y + kslice[0][0] # min and max indicies to sum over
+        jmin = y + kslice[0][0]  # min and max indicies to sum over
         jmax = y + kslice[0][1]
-        kjmin = 0               # min and max kernel indicies to sum over
+        kjmin = 0  # min and max kernel indicies to sum over
         kjmax = kernel.shape[0]
 
         # if we're over the edge of the image, limit extent
@@ -98,9 +109,9 @@ def matched_filter_snr(data, noise, kernel):
             kjmax += offset
 
         for x in range(data.shape[1]):
-            imin = x + kslice[1][0] # min and max indicies to sum over
+            imin = x + kslice[1][0]  # min and max indicies to sum over
             imax = x + kslice[1][1]
-            kimin = 0               # min and max kernel indicies to sum over
+            kimin = 0  # min and max kernel indicies to sum over
             kimax = kernel.shape[1]
 
             # if we're over the edge of the image, limit extent
@@ -115,7 +126,7 @@ def matched_filter_snr(data, noise, kernel):
 
             d = data[jmin:jmax, imin:imax]
             n = noise[jmin:jmax, imin:imax]
-            w = 1. / n**2
+            w = 1.0 / n**2
             k = kernel[kjmin:kjmax, kimin:kimax]
             out[y, x] = np.sum(d * k * w) / np.sqrt(np.sum(k**2 * w))
 
@@ -124,6 +135,7 @@ def matched_filter_snr(data, noise, kernel):
 
 # -----------------------------------------------------------------------------
 # Test versus Source Extractor results
+
 
 @pytest.mark.skipif(NO_FITS, reason="no FITS reader")
 def test_vs_sextractor():
@@ -144,51 +156,60 @@ def test_vs_sextractor():
 
     # Test that SExtractor background is same as SEP:
     bkgarr = bkg.back(dtype=np.float32)
-    assert_allclose(bkgarr, image_refback, rtol=1.e-5)
+    assert_allclose(bkgarr, image_refback, rtol=1.0e-5)
 
-        # Test that SExtractor background rms is same as SEP:
+    # Test that SExtractor background rms is same as SEP:
     rmsarr = bkg.rms(dtype=np.float32)
-    assert_allclose(rmsarr, image_refrms, rtol=1.e-4)
+    assert_allclose(rmsarr, image_refrms, rtol=1.0e-4)
 
     # Extract objects (use deblend_cont=1.0 to disable deblending).
     bkg.subfrom(data)
     objs = sep.extract(data, 1.5, err=bkg.globalrms, deblend_cont=1.0)
-    objs = np.sort(objs, order=['y'])
+    objs = np.sort(objs, order=["y"])
 
     # Read SExtractor result
     refobjs = np.loadtxt(IMAGECAT_FNAME, dtype=IMAGECAT_DTYPE)
-    refobjs = np.sort(refobjs, order=['y'])
+    refobjs = np.sort(refobjs, order=["y"])
 
     # Found correct number of sources at the right locations?
-    assert_allclose(objs['x'], refobjs['x'] - 1., atol=1.e-3)
-    assert_allclose(objs['y'], refobjs['y'] - 1., atol=1.e-3)
+    assert_allclose(objs["x"], refobjs["x"] - 1.0, atol=1.0e-3)
+    assert_allclose(objs["y"], refobjs["y"] - 1.0, atol=1.0e-3)
 
     # Correct Variance and Variance Errors?
-    assert_allclose(objs['x2'], refobjs['x2'], atol=1.e-4)
-    assert_allclose(objs['y2'], refobjs['y2'], atol=1.e-4)
-    assert_allclose(objs['xy'], refobjs['xy'], atol=1.e-4)
-    assert_allclose(objs['errx2'], refobjs['errx2'], rtol=1.e-4)
-    assert_allclose(objs['erry2'], refobjs['erry2'], rtol=1.e-4)
-    assert_allclose(objs['errxy'], refobjs['errxy'], rtol=1.e-3)
+    assert_allclose(objs["x2"], refobjs["x2"], atol=1.0e-4)
+    assert_allclose(objs["y2"], refobjs["y2"], atol=1.0e-4)
+    assert_allclose(objs["xy"], refobjs["xy"], atol=1.0e-4)
+    assert_allclose(objs["errx2"], refobjs["errx2"], rtol=1.0e-4)
+    assert_allclose(objs["erry2"], refobjs["erry2"], rtol=1.0e-4)
+    assert_allclose(objs["errxy"], refobjs["errxy"], rtol=1.0e-3)
 
     # Test aperture flux
-    flux, fluxerr, flag = sep.sum_circle(data, objs['x'], objs['y'], 5.,
-                                         err=bkg.globalrms)
-    assert_allclose(flux, refobjs['flux_aper'], rtol=2.e-4)
-    assert_allclose(fluxerr, refobjs['fluxerr_aper'], rtol=1.0e-5)
+    flux, fluxerr, flag = sep.sum_circle(
+        data, objs["x"], objs["y"], 5.0, err=bkg.globalrms
+    )
+    assert_allclose(flux, refobjs["flux_aper"], rtol=2.0e-4)
+    assert_allclose(fluxerr, refobjs["fluxerr_aper"], rtol=1.0e-5)
 
     # check if the flags work at all (comparison values
     assert ((flag & sep.APER_TRUNC) != 0).sum() == 4
     assert ((flag & sep.APER_HASMASKED) != 0).sum() == 0
 
     # Test "flux_auto"
-    kr, flag = sep.kron_radius(data, objs['x'], objs['y'], objs['a'],
-                               objs['b'], objs['theta'], 6.0)
+    kr, flag = sep.kron_radius(
+        data, objs["x"], objs["y"], objs["a"], objs["b"], objs["theta"], 6.0
+    )
 
-    flux, fluxerr, flag = sep.sum_ellipse(data, objs['x'], objs['y'],
-                                          objs['a'], objs['b'],
-                                          objs['theta'], r=2.5 * kr,
-                                          err=bkg.globalrms, subpix=1)
+    flux, fluxerr, flag = sep.sum_ellipse(
+        data,
+        objs["x"],
+        objs["y"],
+        objs["a"],
+        objs["b"],
+        objs["theta"],
+        r=2.5 * kr,
+        err=bkg.globalrms,
+        subpix=1,
+    )
 
     # For some reason, one object doesn't match. It's very small
     # and kron_radius is set to 0.0 in SExtractor, but 0.08 in sep.
@@ -201,59 +222,74 @@ def test_vs_sextractor():
 
     # We use atol for radius because it is reported to nearest 0.01 in
     # reference objects.
-    assert_allclose(2.5*kr, refobjs['kron_radius'], atol=0.01, rtol=0.)
-    assert_allclose(flux, refobjs['flux_auto'], rtol=0.0005)
-    assert_allclose(fluxerr, refobjs['fluxerr_auto'], rtol=0.0005)
+    assert_allclose(2.5 * kr, refobjs["kron_radius"], atol=0.01, rtol=0.0)
+    assert_allclose(flux, refobjs["flux_auto"], rtol=0.0005)
+    assert_allclose(fluxerr, refobjs["fluxerr_auto"], rtol=0.0005)
 
     # Test using a mask in kron_radius and sum_ellipse.
     for dtype in [np.bool_, np.int32, np.float32, np.float64]:
         mask = np.zeros_like(data, dtype=dtype)
-        kr2, flag = sep.kron_radius(data, objs['x'], objs['y'],
-                                    objs['a'], objs['b'], objs['theta'],
-                                    6.0, mask=mask)
-        kr2[i] = 0.
+        kr2, flag = sep.kron_radius(
+            data,
+            objs["x"],
+            objs["y"],
+            objs["a"],
+            objs["b"],
+            objs["theta"],
+            6.0,
+            mask=mask,
+        )
+        kr2[i] = 0.0
         assert np.all(kr == kr2)
 
     # Test ellipse representation conversion
-    cxx, cyy, cxy = sep.ellipse_coeffs(objs['a'], objs['b'], objs['theta'])
-    assert_allclose(cxx, objs['cxx'], rtol=1.e-4)
-    assert_allclose(cyy, objs['cyy'], rtol=1.e-4)
-    assert_allclose(cxy, objs['cxy'], rtol=1.e-4)
+    cxx, cyy, cxy = sep.ellipse_coeffs(objs["a"], objs["b"], objs["theta"])
+    assert_allclose(cxx, objs["cxx"], rtol=1.0e-4)
+    assert_allclose(cyy, objs["cyy"], rtol=1.0e-4)
+    assert_allclose(cxy, objs["cxy"], rtol=1.0e-4)
 
-    a, b, theta = sep.ellipse_axes(objs['cxx'], objs['cyy'], objs['cxy'])
-    assert_allclose(a, objs['a'], rtol=1.e-4)
-    assert_allclose(b, objs['b'], rtol=1.e-4)
-    assert_allclose(theta, objs['theta'], rtol=1.e-4)
+    a, b, theta = sep.ellipse_axes(objs["cxx"], objs["cyy"], objs["cxy"])
+    assert_allclose(a, objs["a"], rtol=1.0e-4)
+    assert_allclose(b, objs["b"], rtol=1.0e-4)
+    assert_allclose(theta, objs["theta"], rtol=1.0e-4)
 
-    #test round trip
+    # test round trip
     cxx, cyy, cxy = sep.ellipse_coeffs(a, b, theta)
-    assert_allclose(cxx, objs['cxx'], rtol=1.e-4)
-    assert_allclose(cyy, objs['cyy'], rtol=1.e-4)
-    assert_allclose(cxy, objs['cxy'], rtol=1.e-4)
+    assert_allclose(cxx, objs["cxx"], rtol=1.0e-4)
+    assert_allclose(cyy, objs["cyy"], rtol=1.0e-4)
+    assert_allclose(cxy, objs["cxy"], rtol=1.0e-4)
 
     # test flux_radius
-    fr, flags = sep.flux_radius(data, objs['x'], objs['y'], 6.*refobjs['a'],
-                                [0.1, 0.5, 0.6], normflux=refobjs['flux_auto'],
-                                subpix=5)
+    fr, flags = sep.flux_radius(
+        data,
+        objs["x"],
+        objs["y"],
+        6.0 * refobjs["a"],
+        [0.1, 0.5, 0.6],
+        normflux=refobjs["flux_auto"],
+        subpix=5,
+    )
     assert_allclose(fr, refobjs["flux_radius"], rtol=0.04, atol=0.01)
 
     # test winpos
-    sig = 2. / 2.35 * fr[:, 1]  # flux_radius = 0.5
-    xwin, ywin, flag = sep.winpos(data, objs['x'], objs['y'], sig)
-    assert_allclose(xwin, refobjs["xwin"] - 1., rtol=0., atol=0.0015)
-    assert_allclose(ywin, refobjs["ywin"] - 1., rtol=0., atol=0.0015)
+    sig = 2.0 / 2.35 * fr[:, 1]  # flux_radius = 0.5
+    xwin, ywin, flag = sep.winpos(data, objs["x"], objs["y"], sig)
+    assert_allclose(xwin, refobjs["xwin"] - 1.0, rtol=0.0, atol=0.0015)
+    assert_allclose(ywin, refobjs["ywin"] - 1.0, rtol=0.0, atol=0.0015)
+
 
 # -----------------------------------------------------------------------------
 # Background
 
-def test_masked_background():
-    data = 0.1 * np.ones((6,6))
-    data[1,1] = 1.
-    data[4,1] = 1.
-    data[1,4] = 1.
-    data[4,4] = 1.
 
-    mask = np.zeros((6,6), dtype=np.bool_)
+def test_masked_background():
+    data = 0.1 * np.ones((6, 6))
+    data[1, 1] = 1.0
+    data[4, 1] = 1.0
+    data[1, 4] = 1.0
+    data[4, 4] = 1.0
+
+    mask = np.zeros((6, 6), dtype=np.bool_)
 
     # Background array without mask
     sky = sep.Background(data, bw=3, bh=3, fw=1, fh=1)
@@ -312,8 +348,10 @@ def test_background_rms():
     assert rms.dtype == np.float64
     assert rms.shape == (ny, nx)
 
+
 # -----------------------------------------------------------------------------
 # Extract
+
 
 @pytest.mark.skipif(NO_FITS, reason="no FITS reader")
 def test_extract_with_noise_array():
@@ -329,10 +367,14 @@ def test_extract_with_noise_array():
     # convolved. Near edges, the convolution doesn't adjust for pixels
     # off edge boundaries. As a result, the convolved noise map is not
     # all ones.
-    objects = sep.extract(data, 1.5*bkg.globalrms, filter_kernel=None)
-    objects2 = sep.extract(data, 1.5*bkg.globalrms, err=np.ones_like(data),
-                           filter_kernel=None)
-    names_to_remove = ['errx2', 'erry2', 'errxy']
+    objects = sep.extract(data, 1.5 * bkg.globalrms, filter_kernel=None)
+    objects2 = sep.extract(
+        data, 1.5 * bkg.globalrms, err=np.ones_like(data), filter_kernel=None
+    )
+
+    # Threshold must be removed, as it is calculated differently in variable
+    # noise situations - see PR#146 for more details
+    names_to_remove = ["errx2", "erry2", "errxy", "thresh"]
     names_to_keep = [i for i in objects.dtype.names if i not in names_to_remove]
     objects = objects[names_to_keep]
     objects2 = objects2[names_to_keep]
@@ -343,7 +385,7 @@ def test_extract_with_noise_array():
     noise = bkg.globalrms * np.ones_like(data)
     objects2 = sep.extract(data, 1.5, err=noise, filter_kernel=None)
 
-    names_to_remove = ['errx2', 'erry2', 'errxy']
+    names_to_remove = ["errx2", "erry2", "errxy", "thresh"]
     names_to_keep = [i for i in objects.dtype.names if i not in names_to_remove]
     objects = objects[names_to_keep]
     objects2 = objects2[names_to_keep]
@@ -363,15 +405,15 @@ def test_extract_with_noise_convolution():
     error = np.ones((20, 20))
 
     # Add some noise representing bad pixels. We do not want to detect these.
-    image[17, 3] = 100.
-    error[17, 3] = 100.
-    image[10, 0] = 100.
-    error[10, 0] = 100.
-    image[17, 17] = 100.
-    error[17, 17] = 100.
+    image[17, 3] = 100.0
+    error[17, 3] = 100.0
+    image[10, 0] = 100.0
+    error[10, 0] = 100.0
+    image[17, 17] = 100.0
+    error[17, 17] = 100.0
 
     # Add some real point sources that we should find.
-    image[3, 17] = 10.
+    image[3, 17] = 10.0
 
     image[6, 6] = 2.0
     image[7, 6] = 1.0
@@ -380,16 +422,16 @@ def test_extract_with_noise_convolution():
     image[6, 7] = 1.0
 
     objects = sep.extract(image, 2.0, minarea=1, err=error)
-    objects.sort(order=['x', 'y'])
+    objects.sort(order=["x", "y"])
 
     # Check that we recovered the two correct objects and not the others.
     assert len(objects) == 2
 
-    assert_approx_equal(objects[0]['x'], 6.)
-    assert_approx_equal(objects[0]['y'], 6.)
+    assert_approx_equal(objects[0]["x"], 6.0)
+    assert_approx_equal(objects[0]["y"], 6.0)
 
-    assert_approx_equal(objects[1]['x'], 17.)
-    assert_approx_equal(objects[1]['y'], 3.)
+    assert_approx_equal(objects[1]["x"], 17.0)
+    assert_approx_equal(objects[1]["y"], 3.0)
 
 
 def test_extract_matched_filter_at_edge():
@@ -398,14 +440,18 @@ def test_extract_matched_filter_at_edge():
 
     data = np.zeros((20, 20))
     err = np.ones_like(data)
-    kernel = np.array([[1., 2., 1.],
-                       [2., 4., 2.],
-                       [1., 2., 1.]])
+    kernel = np.array([[1.0, 2.0, 1.0], [2.0, 4.0, 2.0], [1.0, 2.0, 1.0]])
 
     data[18:20, 9:12] = kernel[0:2, :]
 
-    objects, pix = sep.extract(data, 2.0, err=err, filter_kernel=kernel,
-                               filter_type="matched", segmentation_map=True)
+    objects, pix = sep.extract(
+        data,
+        2.0,
+        err=err,
+        filter_kernel=kernel,
+        filter_type="matched",
+        segmentation_map=True,
+    )
     assert len(objects) == 1
     assert objects["npix"][0] == 6
 
@@ -421,14 +467,14 @@ def test_extract_with_mask():
     # mask half the image
     ylim = data.shape[0] // 2
     mask = np.zeros(data.shape, dtype=np.bool_)
-    mask[ylim:,:] = True
+    mask[ylim:, :] = True
 
-    objects = sep.extract(data, 1.5*bkg.globalrms, mask=mask)
+    objects = sep.extract(data, 1.5 * bkg.globalrms, mask=mask)
 
     # check that we found some objects and that they are all in the unmasked
     # region.
     assert len(objects) > 0
-    assert np.all(objects['y'] < ylim)
+    assert np.all(objects["y"] < ylim)
 
 
 @pytest.mark.skipif(NO_FITS, reason="no FITS reader")
@@ -439,28 +485,28 @@ def test_extract_segmentation_map():
     bkg = sep.Background(data, bw=64, bh=64, fw=3, fh=3)
     bkg.subfrom(data)
 
-    objects, segmap = sep.extract(data, 1.5*bkg.globalrms,
-                                  segmentation_map=True)
+    objects, segmap = sep.extract(data, 1.5 * bkg.globalrms, segmentation_map=True)
 
     assert type(segmap) is np.ndarray
     assert segmap.shape == data.shape
     for i in range(len(objects)):
-        assert objects["npix"][i] == (segmap == i+1).sum()
+        assert objects["npix"][i] == (segmap == i + 1).sum()
 
 
 # -----------------------------------------------------------------------------
 # aperture tests
 
 naper = 1000
-x = np.random.uniform(200., 800., naper)
-y = np.random.uniform(200., 800., naper)
+x = np.random.uniform(200.0, 800.0, naper)
+y = np.random.uniform(200.0, 800.0, naper)
 data_shape = (1000, 1000)
+
 
 def test_aperture_dtypes():
     """Ensure that all supported image dtypes work in sum_circle() and
     give the same answer"""
 
-    r = 3.
+    r = 3.0
 
     fluxes = []
     for dt in SUPPORTED_IMAGE_DTYPES:
@@ -477,61 +523,60 @@ def test_apertures_small_ellipse_exact():
 
     data = np.ones(data_shape)
     r = 0.3
-    rtol=1.e-10
-    flux, fluxerr, flag = sep.sum_ellipse(data, x, x, r, r, 0., subpix=0)
-    assert_allclose(flux, np.pi*r**2, rtol=rtol)
+    rtol = 1.0e-10
+    flux, fluxerr, flag = sep.sum_ellipse(data, x, x, r, r, 0.0, subpix=0)
+    assert_allclose(flux, np.pi * r**2, rtol=rtol)
+
 
 def test_apertures_all():
     """Test that aperture subpixel sampling works"""
 
     data = np.random.rand(*data_shape)
-    r = 3.
-    rtol=1.e-8
+    r = 3.0
+    rtol = 1.0e-8
 
     for subpix in [0, 1, 5]:
-        flux_ref, fluxerr_ref, flag_ref = sep.sum_circle(data, x, y, r,
-                                                         subpix=subpix)
+        flux_ref, fluxerr_ref, flag_ref = sep.sum_circle(data, x, y, r, subpix=subpix)
 
-        flux, fluxerr, flag = sep.sum_circann(data, x, y, 0., r,
-                                              subpix=subpix)
+        flux, fluxerr, flag = sep.sum_circann(data, x, y, 0.0, r, subpix=subpix)
         assert_allclose(flux, flux_ref, rtol=rtol)
 
-        flux, fluxerr, flag = sep.sum_ellipse(data, x, y, r, r, 0.,
-                                              subpix=subpix)
+        flux, fluxerr, flag = sep.sum_ellipse(data, x, y, r, r, 0.0, subpix=subpix)
         assert_allclose(flux, flux_ref, rtol=rtol)
 
-        flux, fluxerr, flag = sep.sum_ellipse(data, x, y, 1., 1., 0., r=r,
-                                              subpix=subpix)
+        flux, fluxerr, flag = sep.sum_ellipse(
+            data, x, y, 1.0, 1.0, 0.0, r=r, subpix=subpix
+        )
         assert_allclose(flux, flux_ref, rtol=rtol)
-
 
 
 def test_apertures_exact():
     """Test area as measured by exact aperture modes on array of ones"""
 
-    theta = np.random.uniform(-np.pi/2., np.pi/2., naper)
+    theta = np.random.uniform(-np.pi / 2.0, np.pi / 2.0, naper)
     ratio = np.random.uniform(0.2, 1.0, naper)
-    r = 3.
+    r = 3.0
 
     for dt in SUPPORTED_IMAGE_DTYPES:
         data = np.ones(data_shape, dtype=dt)
-        for r in [0.5, 1., 3.]:
+        for r in [0.5, 1.0, 3.0]:
             flux, fluxerr, flag = sep.sum_circle(data, x, y, r, subpix=0)
-            assert_allclose(flux, np.pi*r**2)
+            assert_allclose(flux, np.pi * r**2)
 
-            rout = r*1.1
-            flux, fluxerr, flag = sep.sum_circann(data, x, y, r, rout,
-                                                  subpix=0)
-            assert_allclose(flux, np.pi*(rout**2 - r**2))
+            rout = r * 1.1
+            flux, fluxerr, flag = sep.sum_circann(data, x, y, r, rout, subpix=0)
+            assert_allclose(flux, np.pi * (rout**2 - r**2))
 
-            flux, fluxerr, flag = sep.sum_ellipse(data, x, y, 1., ratio,
-                                                  theta, r=r, subpix=0)
-            assert_allclose(flux, np.pi*ratio*r**2)
+            flux, fluxerr, flag = sep.sum_ellipse(
+                data, x, y, 1.0, ratio, theta, r=r, subpix=0
+            )
+            assert_allclose(flux, np.pi * ratio * r**2)
 
-            rout = r*1.1
-            flux, fluxerr, flag = sep.sum_ellipann(data, x, y, 1., ratio,
-                                                   theta, r, rout, subpix=0)
-            assert_allclose(flux, np.pi*ratio*(rout**2 - r**2))
+            rout = r * 1.1
+            flux, fluxerr, flag = sep.sum_ellipann(
+                data, x, y, 1.0, ratio, theta, r, rout, subpix=0
+            )
+            assert_allclose(flux, np.pi * ratio * (rout**2 - r**2))
 
 
 def test_aperture_bkgann_overlapping():
@@ -540,55 +585,57 @@ def test_aperture_bkgann_overlapping():
     # If bkgann overlaps aperture exactly, result should be zero
     # (with subpix=1)
     data = np.random.rand(*data_shape)
-    r = 5.
-    f, _, _ = sep.sum_circle(data, x, y, r, bkgann=(0., r), subpix=1)
-    assert_allclose(f, 0., rtol=0., atol=1.e-13)
+    r = 5.0
+    f, _, _ = sep.sum_circle(data, x, y, r, bkgann=(0.0, r), subpix=1)
+    assert_allclose(f, 0.0, rtol=0.0, atol=1.0e-13)
 
-    f, _, _ = sep.sum_ellipse(data, x, y, 2., 1., np.pi/4., r=r,
-                              bkgann=(0., r), subpix=1)
-    assert_allclose(f, 0., rtol=0., atol=1.e-13)
+    f, _, _ = sep.sum_ellipse(
+        data, x, y, 2.0, 1.0, np.pi / 4.0, r=r, bkgann=(0.0, r), subpix=1
+    )
+    assert_allclose(f, 0.0, rtol=0.0, atol=1.0e-13)
 
 
 def test_aperture_bkgann_ones():
     """Test bkgann functionality with flat data"""
 
     data = np.ones(data_shape)
-    r=5.
-    bkgann=(6., 8.)
+    r = 5.0
+    bkgann = (6.0, 8.0)
 
     # On flat data, result should be zero for any bkgann and subpix
-    f, fe, _ = sep.sum_circle(data, x, y, r, bkgann=bkgann, gain=1.)
-    assert_allclose(f, 0., rtol=0., atol=1.e-13)
+    f, fe, _ = sep.sum_circle(data, x, y, r, bkgann=bkgann, gain=1.0)
+    assert_allclose(f, 0.0, rtol=0.0, atol=1.0e-13)
 
     # for all ones data and no error array, error should be close to
     # sqrt(Npix_aper + Npix_ann * (Npix_aper**2 / Npix_ann**2))
     aper_area = np.pi * r**2
-    bkg_area = np.pi * (bkgann[1]**2 - bkgann[0]**2)
-    expected_error = np.sqrt(aper_area + bkg_area * (aper_area/bkg_area)**2)
+    bkg_area = np.pi * (bkgann[1] ** 2 - bkgann[0] ** 2)
+    expected_error = np.sqrt(aper_area + bkg_area * (aper_area / bkg_area) ** 2)
     assert_allclose(fe, expected_error, rtol=0.1)
 
-    f, _, _ = sep.sum_ellipse(data, x, y, 2., 1., np.pi/4., r, bkgann=bkgann)
-    assert_allclose(f, 0., rtol=0., atol=1.e-13)
+    f, _, _ = sep.sum_ellipse(data, x, y, 2.0, 1.0, np.pi / 4.0, r, bkgann=bkgann)
+    assert_allclose(f, 0.0, rtol=0.0, atol=1.0e-13)
+
 
 def test_masked_segmentation_measurements():
     """Test measurements with segmentation masking"""
 
     NX = 100
-    data = np.zeros((NX*2,NX*2))
+    data = np.zeros((NX * 2, NX * 2))
     yp, xp = np.indices(data.shape)
 
     ####
     # Make two 2D gaussians that slightly overlap
 
     # width of the 2D objects
-    gsigma = 10.
+    gsigma = 10.0
 
     # offset between two gaussians in sigmas
     off = 4
 
-    for xy in [[NX,NX], [NX+off*gsigma, NX+off*gsigma]]:
-        R = np.sqrt((xp-xy[0])**2+(yp-xy[1])**2)
-        g_i = np.exp(-R**2/2/gsigma**2)
+    for xy in [[NX, NX], [NX + off * gsigma, NX + off * gsigma]]:
+        R = np.sqrt((xp - xy[0]) ** 2 + (yp - xy[1]) ** 2)
+        g_i = np.exp(-(R**2) / 2 / gsigma**2)
         data += g_i
 
     # Absolute total
@@ -597,65 +644,75 @@ def test_masked_segmentation_measurements():
     # Add some noise
     rms = 0.02
     np.random.seed(1)
-    data += np.random.normal(size=data.shape)*rms
+    data += np.random.normal(size=data.shape) * rms
 
     # Run source detection
-    objs, segmap = sep.extract(data, thresh=1.2, err=rms, mask=None,
-                               segmentation_map=True)
+    objs, segmap = sep.extract(
+        data, thresh=1.2, err=rms, mask=None, segmentation_map=True
+    )
 
-    seg_id = np.arange(1, len(objs)+1, dtype=np.int32)
+    seg_id = np.arange(1, len(objs) + 1, dtype=np.int32)
 
     # Compute Kron/Auto parameters
-    x, y, a, b = objs['x'], objs['y'], objs['a'], objs['b']
-    theta = objs['theta']
+    x, y, a, b = objs["x"], objs["y"], objs["a"], objs["b"]
+    theta = objs["theta"]
 
     kronrad, krflag = sep.kron_radius(data, x, y, a, b, theta, 6.0)
 
-    flux_auto, fluxerr, flag = sep.sum_ellipse(data, x, y, a, b, theta,
-                                               2.5*kronrad,
-                                               segmap=segmap, seg_id=seg_id,
-                                               subpix=1)
+    flux_auto, fluxerr, flag = sep.sum_ellipse(
+        data, x, y, a, b, theta, 2.5 * kronrad, segmap=segmap, seg_id=seg_id, subpix=1
+    )
 
     # Test total flux
-    assert_allclose(flux_auto, total_exact, rtol=5.e-2)
+    assert_allclose(flux_auto, total_exact, rtol=5.0e-2)
 
     # Flux_radius
     for flux_fraction in [0.2, 0.5]:
 
         # Exact solution
-        rhalf_exact = np.sqrt(-np.log(1-flux_fraction)*gsigma**2*2)
+        rhalf_exact = np.sqrt(-np.log(1 - flux_fraction) * gsigma**2 * 2)
 
         # Masked measurement
-        flux_radius, flag = sep.flux_radius(data, x, y, 6.*a, flux_fraction,
-                                        seg_id=seg_id, segmap=segmap,
-                                        normflux=flux_auto, subpix=5)
+        flux_radius, flag = sep.flux_radius(
+            data,
+            x,
+            y,
+            6.0 * a,
+            flux_fraction,
+            seg_id=seg_id,
+            segmap=segmap,
+            normflux=flux_auto,
+            subpix=5,
+        )
 
         # Test flux fraction
-        assert_allclose(flux_radius, rhalf_exact, rtol=5.e-2)
+        assert_allclose(flux_radius, rhalf_exact, rtol=5.0e-2)
 
     if False:
-        print('test_masked_flux_radius')
+        print("test_masked_flux_radius")
         print(total_exact, flux_auto)
         print(rhalf_exact, flux_radius)
+
 
 def test_mask_ellipse():
     arr = np.zeros((20, 20), dtype=np.bool_)
 
     # should mask 5 pixels:
-    sep.mask_ellipse(arr, 10., 10., 1.0, 1.0, 0.0, r=1.001)
+    sep.mask_ellipse(arr, 10.0, 10.0, 1.0, 1.0, 0.0, r=1.001)
     assert arr.sum() == 5
 
     # should mask 13 pixels:
-    sep.mask_ellipse(arr, 10., 10., 1.0, 1.0, 0.0, r=2.001)
+    sep.mask_ellipse(arr, 10.0, 10.0, 1.0, 1.0, 0.0, r=2.001)
     assert arr.sum() == 13
 
 
 def test_flux_radius():
     data = np.ones(data_shape)
-    fluxfrac = [0.2**2, 0.3**2, 0.7**2, 1.]
-    true_r = [2., 3., 7., 10.]
-    r, _ = sep.flux_radius(data, x, y, 10.*np.ones_like(x),
-                           [0.2**2, 0.3**2, 0.7**2, 1.], subpix=5)
+    fluxfrac = [0.2**2, 0.3**2, 0.7**2, 1.0]
+    true_r = [2.0, 3.0, 7.0, 10.0]
+    r, _ = sep.flux_radius(
+        data, x, y, 10.0 * np.ones_like(x), [0.2**2, 0.3**2, 0.7**2, 1.0], subpix=5
+    )
     for i in range(len(fluxfrac)):
         assert_allclose(r[:, i], true_r[i], rtol=0.01)
 
@@ -665,16 +722,17 @@ def test_mask_ellipse_alt():
     arr = np.zeros((20, 20), dtype=np.bool_)
 
     # should mask 5 pixels:
-    sep.mask_ellipse(arr, 10., 10., cxx=1.0, cyy=1.0, cxy=0.0, r=1.001)
+    sep.mask_ellipse(arr, 10.0, 10.0, cxx=1.0, cyy=1.0, cxy=0.0, r=1.001)
     assert arr.sum() == 5
 
     # should mask 13 pixels:
-    sep.mask_ellipse(arr, 10., 10., cxx=1.0, cyy=1.0, cxy=0.0, r=2.001)
+    sep.mask_ellipse(arr, 10.0, 10.0, cxx=1.0, cyy=1.0, cxy=0.0, r=2.001)
     assert arr.sum() == 13
 
 
 # -----------------------------------------------------------------------------
 # General behavior and utilities
+
 
 def test_byte_order_exception():
     """Test that error about byte order is raised with non-native
@@ -685,7 +743,7 @@ def test_byte_order_exception():
     data = data.byteswap(True).newbyteorder()
     with pytest.raises(ValueError) as excinfo:
         bkg = sep.Background(data)
-    assert 'byte order' in excinfo.value.args[0]
+    assert "byte order" in excinfo.value.args[0]
 
 
 def test_set_pixstack():
