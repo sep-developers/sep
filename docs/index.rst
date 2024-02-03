@@ -1,5 +1,5 @@
-SEP
-===
+SEP-PJW
+=======
 
 *Python library for Source Extraction and Photometry*
 
@@ -43,10 +43,22 @@ instructions.
 
 - Optimized matched filter for variable noise in source extraction.
 - Circular annulus and elliptical annulus aperture photometry functions.
-- Local background subtraction in shape consistent with aperture in aperture
-  photometry functions.
+- Local background subtraction in shape consistent with aperture in
+  aperture photometry functions.
 - Exact pixel overlap mode in all aperture photometry functions.
 - Masking of elliptical regions on images.
+
+
+SEP-PJW vs. SEP
+...............
+
+The original release of ``sep`` by Kyle Barbary,
+`kbarbary/sep <https://github.com/kbarbary/sep>`_, no longer appears to be
+maintained. Whilst the package is incredibly useful, there are a few
+outstanding bugs, and support for the latest versions of `Python` will be
+limited. The aim of ``sep-pjw`` is to offer a version of sep that resolves
+these issues, whilst maintaining compatibility as much as is feasibly
+possible.
 
 
 Installation
@@ -55,28 +67,28 @@ Installation
 with conda
 ..........
 
-SEP can be installed with conda from the ``conda-forge`` channel::
+SEP-PJW can be installed with conda from the ``conda-forge`` channel::
 
-    conda install -c conda-forge sep
+    conda install -c conda-forge sep-pjw
 
 
 with pip
 ........
 
-SEP can also be installed with `pip <https://pip.pypa.io>`_. After ensuring
-that numpy is installed, run ::
+SEP-PJW can also be installed with `pip <https://pip.pypa.io>`_. After
+ensuring that numpy is installed, run ::
 
-    pip install sep
+    python -m pip install sep-pjw
 
 If you get an error about permissions, you are probably using your
 system Python. In this case, I recommend using `pip's "user install"
 <https://pip.pypa.io/en/latest/user_guide/#user-installs>`_ option to
 install sep into your user directory ::
 
-    pip install --user sep
+    python -m pip install --user sep-pjw
 
-Do **not** install sep or other third-party Python packages using ``sudo``
-unless you are fully aware of the risks.
+Do **not** install ``sep-pjw`` or other third-party Python packages using
+``sudo`` unless you are fully aware of the risks.
 
 
 Usage Guide
@@ -100,10 +112,11 @@ For complete API documentation, see :doc:`reference`.
 Contributing
 ------------
 
-Report a bug or documentation issue: http://github.com/kbarbary/sep/issues
+Report a bug or documentation issue:
+http://github.com/PJ-Watson/sep-pjw/issues
 
-Development of SEP takes place on GitHub at
-http://github.com/kbarbary/sep.  Contributions of bug fixes,
+Development of ``sep-pjw`` takes place on GitHub at
+http://github.com/PJ-Watson/sep-pjw.  Contributions of bug fixes,
 documentation improvements and minor feature additions are welcome via
 GitHub pull requests. For major features, it is best to open an issue
 discussing the change first.

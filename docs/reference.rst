@@ -7,54 +7,54 @@ Reference/API
 .. autosummary::
    :toctree: api
 
-   sep.Background
-   sep.extract
+   sep_pjw.Background
+   sep_pjw.extract
 
 **Aperture photometry**
 
 .. autosummary::
    :toctree: api
 
-   sep.sum_circle
-   sep.sum_circann
-   sep.sum_ellipse
-   sep.sum_ellipann
+   sep_pjw.sum_circle
+   sep_pjw.sum_circann
+   sep_pjw.sum_ellipse
+   sep_pjw.sum_ellipann
 
 **Aperture utilities**
 
 .. autosummary::
    :toctree: api
 
-   sep.kron_radius
-   sep.flux_radius
-   sep.winpos
-   sep.mask_ellipse
-   sep.ellipse_axes
-   sep.ellipse_coeffs
+   sep_pjw.kron_radius
+   sep_pjw.flux_radius
+   sep_pjw.winpos
+   sep_pjw.mask_ellipse
+   sep_pjw.ellipse_axes
+   sep_pjw.ellipse_coeffs
 
 **Low-level utilities**
 
 .. autosummary::
    :toctree: api
 
-   sep.get_extract_pixstack
-   sep.set_extract_pixstack
-   sep.get_sub_object_limit
-   sep.set_sub_object_limit
+   sep_pjw.get_extract_pixstack
+   sep_pjw.set_extract_pixstack
+   sep_pjw.get_sub_object_limit
+   sep_pjw.set_sub_object_limit
 
 **Flags**
 
-========================  ===========================================
-Flag                      Description
-========================  ===========================================
-``sep.OBJ_MERGED``        object is result of deblending
-``sep.OBJ_TRUNC``         object is truncated at image boundary
-``sep.OBJ_SINGU``         x, y fully correlated in object
-``sep.APER_TRUNC``        aperture truncated at image boundary
-``sep.APER_HASMASKED``    aperture contains one or more masked pixels
-``sep.APER_ALLMASKED``    aperture contains only masked pixels
-``sep.APER_NONPOSITIVE``  aperture sum is negative in ``kron_radius``
-========================  ===========================================
+============================  ===========================================
+Flag                          Description
+============================  ===========================================
+``sep_pjw.OBJ_MERGED``        object is result of deblending
+``sep_pjw.OBJ_TRUNC``         object is truncated at image boundary
+``sep_pjw.OBJ_SINGU``         x, y fully correlated in object
+``sep_pjw.APER_TRUNC``        aperture truncated at image boundary
+``sep_pjw.APER_HASMASKED``    aperture contains one or more masked pixels
+``sep_pjw.APER_ALLMASKED``    aperture contains only masked pixels
+``sep_pjw.APER_NONPOSITIVE``  aperture sum is negative in ``kron_radius``
+============================  ===========================================
 
 To see if a given flag is set in ``flags``::
 
