@@ -52,7 +52,7 @@ instructions.
 Python
 ------
 
-**Documentation:** http://sep.readthedocs.io
+**Documentation:** http://sep-pjw.readthedocs.io
 
 **Requirements:**
 
