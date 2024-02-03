@@ -3,7 +3,7 @@ requires = ["setuptools>=61.0", "wheel", "oldest-supported-numpy", "Cython", "se
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "sep"
+name = "sep-pjw"
 dynamic = ["version"]
 authors = [
   { name="Emmanuel Bertin"},
@@ -35,6 +35,17 @@ classifiers=[
 requires-python = ">=3.9"
 dependencies = [
     "numpy>=1.23"
+]
+
+[project.optional-dependencies]
+docs = [
+    "sphinx-copybutton>=0.5",
+    "sphinx>=7.2",
+    "numpydoc>=1.6",
+    "furo>=2024.1",
+    "nbsphinx>=0.9.3",
+    "pandoc>=2.3",
+    "fitsio>=1.2.1",
 ]
 
 [project.urls]

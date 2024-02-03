@@ -41,6 +41,7 @@ MANIFEST
 
 # generated C file
 sep.c
+sep_pjw.c
 
 # PyCharm
 .idea

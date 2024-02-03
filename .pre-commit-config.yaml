@@ -20,3 +20,9 @@ repos:
 #     rev: v1.6.0
 #     hooks:
 #     -   id: numpydoc-validation
+-   repo: https://github.com/sphinx-contrib/sphinx-lint
+    rev: v0.9.1
+    hooks:
+    - id: sphinx-lint
+      args: [--enable=all, --disable=default-role, --max-line-length=75]
+      files: ^docs/

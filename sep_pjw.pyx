@@ -899,7 +899,7 @@ def sum_circle(np.ndarray data not None, x, y, r,
         and seg[j, i] != 0``). If ``seg_id`` is negative, all pixels other
         than those belonging to the object of interest are masked. (Pixel ``j,
         i`` is masked if ``seg[j, i] != -seg_id``).  NB: must be included if
-        ``segmap` is provided.
+        ``segmap`` is provided.
 
     bkgann : tuple, optional
         Length 2 tuple giving the inner and outer radius of a
@@ -1096,7 +1096,7 @@ def sum_circann(np.ndarray data not None, x, y, rin, rout,
         and seg[j, i] != 0``). If ``seg_id`` is negative, all pixels other
         than those belonging to the object of interest are masked. (Pixel ``j,
         i`` is masked if ``seg[j, i] != -seg_id``).  NB: must be included if
-        ``segmap` is provided.
+        ``segmap`` is provided.
 
     gain : float, optional
         Conversion factor between data array units and poisson counts,
@@ -1241,7 +1241,7 @@ def sum_ellipse(np.ndarray data not None, x, y, a, b, theta, r=1.0,
         and seg[j, i] != 0``). If ``seg_id`` is negative, all pixels other
         than those belonging to the object of interest are masked. (Pixel ``j,
         i`` is masked if ``seg[j, i] != -seg_id``).  NB: must be included if
-        ``segmap` is provided.
+        ``segmap`` is provided.
 
     bkgann : tuple, optional
         Length 2 tuple giving the inner and outer radius of a
@@ -1455,7 +1455,7 @@ def sum_ellipann(np.ndarray data not None, x, y, a, b, theta, rin, rout,
         and seg[j, i] != 0``). If ``seg_id`` is negative, all pixels other
         than those belonging to the object of interest are masked. (Pixel ``j,
         i`` is masked if ``seg[j, i] != -seg_id``).  NB: must be included if
-        ``segmap` is provided.
+        ``segmap`` is provided.
 
     subpix : int, optional
         Subpixel sampling factor. Default is 5.
@@ -1594,7 +1594,7 @@ def flux_radius(np.ndarray data not None, x, y, rmax, frac, normflux=None,
         and seg[j, i] != 0``). If ``seg_id`` is negative, all pixels other
         than those belonging to the object of interest are masked. (Pixel ``j,
         i`` is masked if ``seg[j, i] != -seg_id``).  NB: must be included if
-        ``segmap` is provided.
+        ``segmap`` is provided.
 
     subpix : int, optional
         Subpixel sampling factor. Default is 5.
@@ -1849,7 +1849,7 @@ def kron_radius(np.ndarray data not None, x, y, a, b, theta, r,
         and seg[j, i] != 0``). If ``seg_id`` is negative, all pixels other
         than those belonging to the object of interest are masked. (Pixel ``j,
         i`` is masked if ``seg[j, i] != -seg_id``).  NB: must be included if
-        ``segmap` is provided.
+        ``segmap`` is provided.
 
     Returns
     -------
