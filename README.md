@@ -1,23 +1,32 @@
-IMPORTANT
----------
+SEP-PJW
+=======
 
-This repository (all versions >= 1.3) was forked from https://github.com/kbarbary/sep in November 2023, as the original library no longer appears to be maintained. The current version can be installed by cloning this repository, and running
-```
-python -m pip install .
-```
-Changes are described in [CHANGES.md](./CHANGES.md), with all other documentation remaining unaltered.
-
-SEP
-===
-
-Python and C library for Source Extraction and Photometry
+Python and C library for Source Extraction and Photometry, forked from [kbarbary/sep](https://github.com/kbarbary/sep) to provide additional features and bug fixes.
 
 ![Build Status](https://github.com/kbarbary/sep/workflows/Python%20package/badge.svg)
 [![PyPI](https://img.shields.io/pypi/v/sep.svg)](https://pypi.python.org/pypi/sep)
+[![Documentation Status](https://readthedocs.org/projects/sep-pjw/badge/?version=latest)](https://sep-pjw.readthedocs.io/en/latest/?badge=latest)
 [![JOSS](http://joss.theoj.org/papers/10.21105/joss.00058/status.svg)](http://dx.doi.org/10.21105/joss.00058)
 
 *"... [it's] an SEP: Somebody Else's Problem."
 "Oh, good. I can relax then."*
+
+SEP-PJW vs. SEP
+---------------
+
+The original release of `sep` by Kyle Barbary,
+[kbarbary/sep](https://github.com/kbarbary/sep), no longer appears to be
+maintained. Whilst the package is incredibly useful, there are a few
+outstanding bugs, and support for the latest versions of Python
+(`python>=3.11`) will be limited. The aim of `sep-pjw` is to offer a
+version of `sep` that resolves these issues, whilst maintaining
+compatibility as much as is feasibly possible. Any fixes or updates to
+the original library are documented in [CHANGES.md](./CHANGES.md). For
+existing workflows, the only necessary update will be to change the import
+to
+```python
+import sep_pjw as sep
+```
 
 
 About
@@ -56,24 +65,24 @@ Python
 
 **Requirements:**
 
-- Python 3.5+
-- numpy
+- Python 3.9+
+- numpy 1.23+
 
 **Install release version:**
 
-SEP can be installed with [pip](https://pip.pypa.io):
+SEP-PJW can be installed with [pip](https://pip.pypa.io):
 
 ```
-pip install sep
+python -m pip install sep-pjw
 ```
 
 If you get an error about permissions, you are probably using your
 system Python. In this case, we recommend using [pip's "user
 install"](https://pip.pypa.io/en/latest/user_guide/#user-installs)
-option to install sep into your user directory:
+option to install sep-pjw into your user directory:
 
 ```
-pip install --user sep
+python -m pip install --user sep-pjw
 ```
 
 Do **not** install sep or other third-party Python packages using
@@ -142,14 +151,14 @@ and header file in `/path/to/prefix/include`. The default prefix is
 Contributing
 ------------
 
-- Report a bug or documentation issue: http://github.com/kbarbary/sep/issues
-- Ask (or answer) a question: https://github.com/kbarbary/sep/discussions/categories/q-a
+- Report a bug or documentation issue: http://github.com/PJ-Watson/sep-pjw/issues
+- Ask (or answer) a question: https://github.com/PJ-Watson/sep-pjw/discussions/categories/q-a
 
-Development of SEP takes place on GitHub at
-http://github.com/kbarbary/sep.  Contributions of bug fixes,
+Development of SEP-PJW takes place on GitHub at
+[PJ-Watson/sep-pjw](http://github.com/PJ-Watson/sep-pjw).  Contributions of bug fixes,
 documentation improvements and minor feature additions are welcome via
 GitHub pull requests. For major features, it is best to discuss the change first
-via [GitHub Discussions](https://github.com/kbarbary/sep/discussions/).
+via [GitHub Discussions](https://github.com/PJ-Watson/sep-pjw/discussions/).
 
 
 Citation
@@ -269,4 +278,4 @@ the data.
 
 **I have more questions!**
 
-Open a discussion on the [GitHub Discussions page](https://github.com/kbarbary/sep/discussions/categories/q-a)!
+Open a discussion on the [GitHub Discussions page](https://github.com/PJ-Watson/sep-pjw/discussions/categories/q-a)!
