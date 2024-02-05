@@ -658,9 +658,15 @@ def extract(np.ndarray data not None, float thresh, err=None, var=None,
         Perform cleaning? Default is True.
     clean_param : float, optional
         Cleaning parameter (see SExtractor manual). Default is 1.0.
-    segmentation_map : bool, optional
-        If True, also return a "segmentation map" giving the member
+    segmentation_map : `~numpy.ndarray` or bool, optional
+        If ``True``, also return a "segmentation map" giving the member
         pixels of each object. Default is False.
+
+        *New in v1.3.0*:
+        An existing segmentation map can also be supplied in
+        the form of an `~numpy.ndarray`. If this is the case, then the
+        object detection stage is skipped, and the objects in the
+        segmentation map are analysed and extracted.
 
     Returns
     -------
@@ -692,7 +698,7 @@ def extract(np.ndarray data not None, float thresh, err=None, var=None,
         Array of integers with same shape as data. Pixels not belonging to
         any object have value 0. All pixels belonging to the ``i``-th object
         (e.g., ``objects[i]``) have value ``i+1``. Only returned if
-        ``segmentation_map=True``.
+        ``segmentation_map = True | ~numpy.ndarray``.
     """
 
     cdef int kernelw, kernelh, status, i, j

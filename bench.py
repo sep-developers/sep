@@ -5,8 +5,7 @@ import time
 from os.path import join
 
 import numpy as np
-
-import sep
+import sep_pjw as sep
 
 # try to import photutils for comparison timing
 try:

@@ -53,7 +53,7 @@ docs = [
 [project.urls]
 "Homepage" = "https://github.com/PJ-Watson/sep-pjw"
 "Bug Tracker" = "https://github.com/PJ-Watson/sep-pjw/issues"
-"(Old) Documentation" = "http://sep-pjw.readthedocs.org"
+"Documentation" = "http://sep-pjw.readthedocs.org"
 
 [tool.setuptools_scm]
 version_file = "src/_version.py"

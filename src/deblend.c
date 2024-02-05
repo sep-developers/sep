@@ -74,6 +74,7 @@ int deblend(objliststruct *objlistin, objliststruct *objlistout,
   submap = NULL;
   status = RETURN_OK;
   xn = deblend_nthresh;
+  l = 0;
 
   /* reset global static objlist for deblending */
   objliststruct *const objlist = ctx->objlist;

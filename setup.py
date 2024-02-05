@@ -35,7 +35,10 @@ else:
             sourcefiles,
             include_dirs=include_dirs,
             depends=headerfiles,
-            define_macros=[("_USE_MATH_DEFINES", "1")],
+            define_macros=[
+                ("_USE_MATH_DEFINES", "1"),
+                ("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION"),
+            ],
         )
     ]
     extensions = cythonize(extensions)

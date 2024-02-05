@@ -180,7 +180,7 @@ int sep_extract(const sep_image *image, float thresh, int thresh_type,
   size_t            mem_pixstack;
   int64_t           nposize, oldnposize;
   int64_t           w, h;
-  int64_t           co, i, j, pstop, xl, xl2, yl, cn;
+  int64_t           co, i, pstop, xl, xl2, yl, cn;
   int64_t           ididx, numids, totnpix;
   int64_t           prevpix, bufh;
   int64_t           stacksize, convn;
@@ -190,7 +190,7 @@ int sep_extract(const sep_image *image, float thresh, int thresh_type,
   float             sum;
   pixstatus         cs, ps;
 
-  infostruct        *info, *store;
+  infostruct        *info, *store, *idinfo;
   objliststruct     *finalobjlist;
   pliststruct	      *pixel, *pixt;
   char              *marker;
@@ -211,9 +211,10 @@ int sep_extract(const sep_image *image, float thresh, int thresh_type,
   sigscan = workscan = NULL;
   info = NULL;
   store = NULL;
+  idinfo = NULL;
   marker = NULL;
   psstack = NULL;
-  start = end = NULL;
+  start = end = cumcounts = NULL;
   finalobjlist = NULL;
   survives = NULL;
   cat = NULL;
@@ -223,7 +224,7 @@ int sep_extract(const sep_image *image, float thresh, int thresh_type,
   h = image->h;
 
   numids = (image->numids) ? image->numids : 1;
-  infostruct *idinfo;
+  QCALLOC(cumcounts, int64_t, numids, status);
   QCALLOC(idinfo, infostruct, numids, status);
 
   prevpix = 0;
@@ -237,13 +238,12 @@ int sep_extract(const sep_image *image, float thresh, int thresh_type,
   mem_pixstack = sep_get_extract_pixstack();
 
   if (image->segmap) {
-    QCALLOC(cumcounts, int64_t, numids, status)
     totnpix = 0;
     for (i=0; i<numids; i++) {
       cumcounts[i] = totnpix;
       totnpix += image->idcounts[i];
     }
-    if (totnpix>mem_pixstack) {
+    if (sizeof(totnpix)>mem_pixstack) {
       goto exit;
     }
     mem_pixstack = totnpix + 1;
@@ -760,13 +760,13 @@ int sep_extract(const sep_image *image, float thresh, int thresh_type,
     free(finalobjlist);
   }
   if (image->segmap) {
-    free(cumcounts);
     arraybuffer_free(&sbuf);
   }
   freedeblend(&deblendctx);
   free(pixel);
   free(info);
   free(idinfo);
+  free(cumcounts);
   free(store);
   free(marker);
   free(dummyscan);
@@ -802,9 +802,7 @@ int sep_extract(const sep_image *image, float thresh, int thresh_type,
 
 int segsortit(infostruct *info, objliststruct *objlist,
            objliststruct *finalobjlist, double gain) {
-  objliststruct objlistout, *objlist2;
   objstruct obj;
-  int64_t i;
   int status;
 
   status = RETURN_OK;
