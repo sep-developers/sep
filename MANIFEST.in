@@ -5,5 +5,5 @@ include licenses/*
 include pyproject.toml
 
 include src/*.[c,h,i]
-include sep.pyx
-exclude sep.c
+include sep_pjw.pyx
+exclude sep_pjw.c
