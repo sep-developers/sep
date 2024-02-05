@@ -16,6 +16,7 @@
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
 #include <math.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -24,7 +25,7 @@
 
 #define DETAILSIZE 512
 
-const char *const sep_version_string = "1.3.1.dev";
+const char *const sep_version_string = "1.3.1.1";
 static _Thread_local char _errdetail_buffer[DETAILSIZE] = "";
 
 /****************************************************************************/
