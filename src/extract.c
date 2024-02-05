@@ -221,8 +221,11 @@ int sep_extract(const sep_image *image, float thresh, int thresh_type,
   sum = 0.0;
   w = image->w;
   h = image->h;
+
   numids = (image->numids) ? image->numids : 1;
-  infostruct idinfo[numids];
+  infostruct *idinfo;
+  QCALLOC(idinfo, infostruct, numids, status);
+
   prevpix = 0;
   isvarthresh = 0;
   relthresh = 0.0;
@@ -763,6 +766,7 @@ int sep_extract(const sep_image *image, float thresh, int thresh_type,
   freedeblend(&deblendctx);
   free(pixel);
   free(info);
+  free(idinfo);
   free(store);
   free(marker);
   free(dummyscan);
