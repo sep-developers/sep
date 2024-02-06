@@ -536,7 +536,7 @@ int filterback(sep_bkg *bkg, int64_t fw, int64_t fh, double fthresh)
         {
 /*------ Seek the closest valid mesh */
         d2min = BIG;
-        nmin = 0.0;
+        nmin = 0;
         for (j=0,y=0; y<ny; y++)
           for (x=0; x<nx; x++,j++)
             if (back[j]>-BIG)

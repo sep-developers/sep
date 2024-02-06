@@ -17,10 +17,10 @@ authors = [
   { name="Michael Wuertenberger"},
   { name="Ingvar Stepanyan"},
   { name="Gabe Brammer"},
-  { name="Peter Watson", email="peter.watson+pyGFE@inaf.it" },
+  { name="Peter Watson", email="peter.watson+sep@inaf.it" },
 ]
 maintainers = [
-  { name="Peter Watson", email="peter.watson+pyGFE@inaf.it" },
+  { name="Peter Watson", email="peter.watson+sep@inaf.it" },
 ]
 description="Astronomical source extraction and photometry library"
 readme = "README.md"

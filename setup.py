@@ -41,6 +41,9 @@ else:
             ],
         )
     ]
-    extensions = cythonize(extensions)
+    extensions = cythonize(
+        extensions,
+        language_level=3,
+    )
 
 setup(ext_modules=extensions)

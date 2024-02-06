@@ -373,7 +373,7 @@ def test_extract_with_noise_array():
 
     # Threshold must be removed, as it is calculated differently in variable
     # noise situations - see PR#146 for more details
-    names_to_remove = ["errx2", "erry2", "errxy", "thresh"]
+    names_to_remove = ["errx2", "erry2", "errxy"]
     names_to_keep = [i for i in objects.dtype.names if i not in names_to_remove]
     objects = objects[names_to_keep]
     objects2 = objects2[names_to_keep]
@@ -384,7 +384,7 @@ def test_extract_with_noise_array():
     noise = bkg.globalrms * np.ones_like(data)
     objects2 = sep.extract(data, 1.5, err=noise, filter_kernel=None)
 
-    names_to_remove = ["errx2", "erry2", "errxy", "thresh"]
+    names_to_remove = ["errx2", "erry2", "errxy"]
     names_to_keep = [i for i in objects.dtype.names if i not in names_to_remove]
     objects = objects[names_to_keep]
     objects2 = objects2[names_to_keep]

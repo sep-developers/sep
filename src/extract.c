@@ -1086,14 +1086,15 @@ PIXTYPE get_mean_thresh(infostruct *info, pliststruct *pixel)
 {
   pliststruct   *pixt;
   int           pix_accum=0;
-  PIXTYPE       thresh_accum=0;
+  double       thresh_accum=0;
 
+  // Threshold must be cast to double to avoid precision loss
   for (pixt=pixel+info->firstpix; pixt>=pixel; pixt=pixel+PLIST(pixt,nextpix)) {
-    thresh_accum += PLISTPIX(pixt,thresh);
+    thresh_accum += (double) PLISTPIX(pixt,thresh);
     pix_accum++;
   }
 
-  return thresh_accum / pix_accum;
+  return (PIXTYPE) (thresh_accum / pix_accum);
 }
 
 

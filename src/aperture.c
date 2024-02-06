@@ -789,8 +789,8 @@ int sep_windowed(const sep_image *im,
   double maskarea, maskweight, maskdxpos, maskdypos;
   double r, tv, twv, sigtv, totarea, overlap, rpix2, invtwosig2;
   double wpix;
-  int64_t i, ix, iy, xmin, xmax, ymin, ymax, sx, sy, pos, size, esize, msize;
-  int status;
+  int64_t ix, iy, xmin, xmax, ymin, ymax, sx, sy, pos, size, esize, msize;
+  int i, status;
   short errisarray, errisstd;
   const BYTE *datat, *errort, *maskt;
   converter convert, econvert, mconvert;
