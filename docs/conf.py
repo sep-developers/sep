@@ -49,6 +49,7 @@ extensions = [
     "nbsphinx",
     "IPython.sphinxext.ipython_console_highlighting",
     "sphinx_copybutton",
+    "myst_parser",
 ]
 numpydoc_show_class_members = False
 autosummary_generate = ["reference.rst"]

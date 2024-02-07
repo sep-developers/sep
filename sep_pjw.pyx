@@ -723,6 +723,15 @@ def extract(np.ndarray data not None, float thresh, err=None, var=None,
         filter_ids = ids>0
         segids = np.ascontiguousarray(ids[filter_ids].astype(dtype=np.int64))
         idcounts = np.ascontiguousarray(counts[filter_ids].astype(dtype=np.int64))
+        if np.nansum(idcounts)>get_extract_pixstack():
+            raise ValueError(
+                f"The number of object pixels ({np.nansum(idcounts)}) in "
+                "the segmentation map exceeds the allocated pixel stack "
+                f"({get_extract_pixstack()}). Use "
+                "`sep_pjw.set_extract_pixstack()` to increase the size, "
+                "or check that the correct segmentation map has been "
+                "supplied."
+            )
 
         idbuf = segids.view(dtype=np.int64)
         countbuf = idcounts.view(dtype=np.int64)

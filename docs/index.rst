@@ -100,6 +100,7 @@ Usage Guide
    tutorial
    filter
    apertures
+   changelog
 
 .. toctree::
    :hidden:

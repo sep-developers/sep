@@ -1,3 +1,12 @@
+v1.3.2.1 (7 February 2023)
+========================
+
+* Add changelog to documentation.
+* Add tests for re-running with seg map.
+* Fix array boundary bugs when re-running with seg map.
+* Fix bug with precision loss when calculating threshold.
+* Improve error handling when object pixels exceed pix stack.
+
 v1.3.2 (5 February 2023)
 ========================
 

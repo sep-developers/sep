@@ -371,8 +371,6 @@ def test_extract_with_noise_array():
         data, 1.5 * bkg.globalrms, err=np.ones_like(data), filter_kernel=None
     )
 
-    # Threshold must be removed, as it is calculated differently in variable
-    # noise situations - see PR#146 for more details
     names_to_remove = ["errx2", "erry2", "errxy"]
     names_to_keep = [i for i in objects.dtype.names if i not in names_to_remove]
     objects = objects[names_to_keep]
@@ -490,6 +488,70 @@ def test_extract_segmentation_map():
     assert segmap.shape == data.shape
     for i in range(len(objects)):
         assert objects["npix"][i] == (segmap == i + 1).sum()
+
+
+@pytest.mark.skipif(NO_FITS, reason="no FITS reader")
+def test_extract_seg_map_array():
+
+    # Get some background-subtracted test data:
+    data = np.copy(image_data)
+    bkg = sep.Background(data, bw=64, bh=64, fw=3, fh=3)
+    bkg.subfrom(data)
+
+    noise = bkg.globalrms * np.ones_like(data)
+
+    for err in [None, noise]:
+        # err=None
+        # err=noise
+
+        objects, segmap = sep.extract(data, 1.5, err, segmentation_map=True)
+
+        assert type(segmap) is np.ndarray
+        assert segmap.shape == data.shape
+        for i in range(len(objects)):
+            assert objects["npix"][i] == (segmap == i + 1).sum()
+
+        objects2, segmap2 = sep.extract(data, 1.5, err, segmentation_map=segmap)
+
+        # Test the values for which we expect an exact match
+        names_exact_match = [
+            "thresh",
+            "npix",
+            "tnpix",
+            "xmin",
+            "xmax",
+            "ymin",
+            "ymax",
+            "cflux",
+            "flux",
+            "cpeak",
+            "peak",
+            "xcpeak",
+            "ycpeak",
+            "xpeak",
+            "ypeak",
+        ]
+
+        # The position depends on the object being deblended. As no deblending
+        # is performed when a segmentation map is supplied, all derived
+        # parameters may vary slightly. We test those for which we have a
+        # measurement of the uncertainty
+        names_close = ["x", "y"]
+        names_close_var = ["x2", "y2"]
+
+        assert segmap2.shape == data.shape
+        for o_i, o_ii in zip(objects, objects2):
+            o_i_exact = o_i[names_exact_match]
+            o_ii_exact = o_ii[names_exact_match]
+            assert_equal(o_i_exact, o_ii_exact)
+
+            o_i_close = o_i[names_close]
+            o_ii_close = o_ii[names_close]
+            for n, v in zip(names_close, names_close_var):
+                if o_i["flag"] == 0:
+                    assert_equal(o_i[n], o_ii[n])
+                else:
+                    assert_allclose(o_i[n], o_ii[n], atol=np.sqrt(o_i[v]))
 
 
 # -----------------------------------------------------------------------------

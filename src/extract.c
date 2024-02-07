@@ -23,6 +23,7 @@
 /* Note: was scan.c in SExtractor. */
 
 #include <math.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -224,8 +225,6 @@ int sep_extract(const sep_image *image, float thresh, int thresh_type,
   h = image->h;
 
   numids = (image->numids) ? image->numids : 1;
-  QCALLOC(cumcounts, int64_t, numids, status);
-  QCALLOC(idinfo, infostruct, numids, status);
 
   prevpix = 0;
   isvarthresh = 0;
@@ -238,15 +237,16 @@ int sep_extract(const sep_image *image, float thresh, int thresh_type,
   mem_pixstack = sep_get_extract_pixstack();
 
   if (image->segmap) {
+    QCALLOC(cumcounts, int64_t, numids, status);
+    QCALLOC(idinfo, infostruct, numids, status);
     totnpix = 0;
     for (i=0; i<numids; i++) {
       cumcounts[i] = totnpix;
       totnpix += image->idcounts[i];
     }
-    if (sizeof(totnpix)>mem_pixstack) {
+    if (totnpix>mem_pixstack) {
       goto exit;
     }
-    mem_pixstack = totnpix + 1;
   }
 
   /* seed the random number generator consistently on each call to get
@@ -348,10 +348,10 @@ int sep_extract(const sep_image *image, float thresh, int thresh_type,
 
   if (image->segmap) {
     sscan = sbuf.midline;
-    for (i=0; i<numids; i++) {
+    for (i=0; i<(size_t)numids; i++) {
       idinfo[i].pixnb = 0;
       idinfo[i].flag = 0;
-      idinfo[i].firstpix = info[i].lastpix = -1;
+      idinfo[i].firstpix = idinfo[i].lastpix = -1;
     }
   }
 
@@ -503,12 +503,12 @@ int sep_extract(const sep_image *image, float thresh, int thresh_type,
       /* luflag: is pixel above thresh (Y/N)? */
       /* First check if segmap exists */
       if (image->segmap) {
-        if (sscan[xl]>0) {
+        if ((sscan[xl]>0) && (xl != w) && (yl != h)) {
           if (xl == 0 || xl == w - 1)
             curpixinfo.flag |= SEP_OBJ_TRUNC;
 
           for (ididx=0; ididx<numids; ididx++) {
-            if (image->segids[ididx]==(long)sscan[xl]) {
+            if (image->segids[ididx]==(int64_t)sscan[xl]) {
 
               pixt = pixel + prevpix*plistsize;
               prevpix = cumcounts[ididx] + idinfo[ididx].pixnb;
@@ -761,12 +761,12 @@ int sep_extract(const sep_image *image, float thresh, int thresh_type,
   }
   if (image->segmap) {
     arraybuffer_free(&sbuf);
+    free(idinfo);
+    free(cumcounts);
   }
   freedeblend(&deblendctx);
   free(pixel);
   free(info);
-  free(idinfo);
-  free(cumcounts);
   free(store);
   free(marker);
   free(dummyscan);
@@ -817,7 +817,7 @@ int segsortit(infostruct *info, objliststruct *objlist,
   obj.lastpix = info->lastpix;
   obj.flag = info->flag;
 
-  obj.thresh = get_mean_thresh(info, objlist->plist);
+  obj.thresh = plistexist_thresh ? get_mean_thresh(info, objlist->plist): objlist->thresh;
 
   analyse(0, objlist, 1, gain);
 
