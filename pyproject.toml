@@ -48,7 +48,7 @@ docs = [
     "pandoc>=2.3",
     "fitsio>=1.2.1",
     "jupyter",
-    "myst-parser>2.0.0",
+    "myst-parser>=2.0.0",
 ]
 
 [project.urls]

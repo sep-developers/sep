@@ -244,7 +244,7 @@ int sep_extract(const sep_image *image, float thresh, int thresh_type,
       cumcounts[i] = totnpix;
       totnpix += image->idcounts[i];
     }
-    if (totnpix>mem_pixstack) {
+    if ((size_t)totnpix>mem_pixstack) {
       goto exit;
     }
   }
@@ -348,7 +348,7 @@ int sep_extract(const sep_image *image, float thresh, int thresh_type,
 
   if (image->segmap) {
     sscan = sbuf.midline;
-    for (i=0; i<(size_t)numids; i++) {
+    for (i=0; i<numids; i++) {
       idinfo[i].pixnb = 0;
       idinfo[i].flag = 0;
       idinfo[i].firstpix = idinfo[i].lastpix = -1;
