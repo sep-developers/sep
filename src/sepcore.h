@@ -20,6 +20,8 @@
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
+#include <stdint.h>
+
 #define	RETURN_OK           0  /* must be zero */
 #define MEMORY_ALLOC_ERROR  1
 #define PIXSTACK_FULL       2

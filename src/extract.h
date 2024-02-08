@@ -20,6 +20,8 @@
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
+#include "sepcore.h"
+
 #define	UNKNOWN	        -1    /* flag for LUTZ */
 #define	CLEAN_ZONE      10.0  /* zone (in sigma) to consider for processing */
 #define CLEAN_STACKSIZE 3000  /* replaces prefs.clean_stacksize  */

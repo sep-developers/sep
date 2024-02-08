@@ -20,6 +20,9 @@
 *
 *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
+#include <stdint.h>
+#include <stddef.h>
+
 #ifdef _MSC_VER
 #define SEP_API __declspec(dllexport)
 #else

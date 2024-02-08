@@ -1,4 +1,4 @@
-v1.3.2.1 (7 February 2023)
+v1.3.3 (7 February 2023)
 ========================
 
 * Add changelog to documentation.
