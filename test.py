@@ -801,7 +801,7 @@ def test_byte_order_exception():
     and aperture functions."""
 
     data = np.ones((100, 100), dtype=np.float64)
-    data = data.byteswap(True).newbyteorder()
+    data = data.view(data.dtype.newbyteorder("S"))
     with pytest.raises(ValueError) as excinfo:
         bkg = sep.Background(data)
     assert "byte order" in excinfo.value.args[0]
