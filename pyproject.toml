@@ -17,7 +17,7 @@ authors = [
   { name="Michael Wuertenberger"},
   { name="Ingvar Stepanyan"},
   { name="Gabe Brammer"},
-  { name="Peter Watson", email="peter.watson+sep@inaf.it" },
+  { name="Peter Watson"},
 ]
 maintainers = [
   { name="Peter Watson", email="peter.watson+sep@inaf.it" },

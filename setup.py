@@ -1,3 +1,5 @@
+"""Setup file to build the C library."""
+
 import os
 import re
 import sys

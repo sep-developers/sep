@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+
+"""Benchmarking SEP-PJW against equivalent photutils functions."""
+
 from __future__ import print_function
 
 import time

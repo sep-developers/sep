@@ -1,4 +1,4 @@
-exclude: "data/*"
+exclude: "^data/"
 repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v3.2.0
@@ -16,13 +16,19 @@ repos:
     rev: 23.12.1
     hooks:
     -   id: black
-# -   repo: https://github.com/numpy/numpydoc
-#     rev: v1.6.0
-#     hooks:
-#     -   id: numpydoc-validation
+        args: [--preview]
+-   repo: https://github.com/numpy/numpydoc
+    rev: v1.6.0
+    hooks:
+    -   id: numpydoc-validation
 -   repo: https://github.com/sphinx-contrib/sphinx-lint
     rev: v0.9.1
     hooks:
-    - id: sphinx-lint
-      args: [--enable=all, --disable=default-role, --max-line-length=75]
-      files: ^docs/
+    -   id: sphinx-lint
+        args: [--enable=all, --disable=default-role, --max-line-length=75, -v]
+        files: ^docs\/|^.*\.(rst$|md$)
+-   repo: https://github.com/pre-commit/mirrors-clang-format
+    rev: v17.0.6
+    hooks:
+    -   id: clang-format
+        types_or: [c++, c, cuda]
