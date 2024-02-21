@@ -1,11 +1,26 @@
 #!/usr/bin/env python
 
+"""Compare the output from SEP-PJW against SExtractor."""
+
 from __future__ import print_function
 
 import sys
 
 
 def read_table(fname):
+    """
+    Read in a whitespace-separated table.
+
+    Parameters
+    ----------
+    fname : path-like
+        The filename of the table to be opened.
+
+    Returns
+    -------
+    List[List[int|float]]
+        A list of rows, each of which is a list of the values in that row.
+    """
     rows = []
     for line in open(fname, "r"):
         l = line.strip()
@@ -23,6 +38,19 @@ def read_table(fname):
 
 
 def fracdiff(x, y):
+    """
+    Return the fraction difference between two numbers.
+
+    Parameters
+    ----------
+    x, y : float
+        The numbers to be compared.
+
+    Returns
+    -------
+    float
+        The fractional difference.
+    """
     return abs((y - x) / max(y, x))
 
 

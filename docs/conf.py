@@ -12,6 +12,8 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
+"""The sphinx configuration file for the SEP-PJW documentation."""
+
 import os
 import sys
 

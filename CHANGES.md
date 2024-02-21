@@ -1,3 +1,12 @@
+v1.3.4 (21 February 2023)
+========================
+
+* Include .clang-format as a pre-commit hook, to ensure consistent code
+  style (improved readability, easier maintenance).
+* Fixed `make test` to account for the changes in
+  [v1.3.0](https://github.com/PJ-Watson/sep-pjw/releases/tag/v1.3.0).
+* All header files include the correct definitions.
+
 v1.3.3 (7 February 2023)
 ========================
 

@@ -1,4 +1,7 @@
 #!/usr/bin/env py.test
+
+"""Test the python functionality of SEP-PJW."""
+
 from __future__ import division, print_function
 
 import os
@@ -6,6 +9,7 @@ import os
 import numpy as np
 import pytest
 import sep_pjw as sep
+from numpy.lib import recfunctions as rfn
 from numpy.testing import assert_allclose, assert_approx_equal, assert_equal
 
 # unicode_literals doesn't play well with numpy dtype field names
@@ -63,9 +67,15 @@ if not NO_FITS:
 
 
 def assert_allclose_structured(x, y):
-    """Assert that two structured arrays are close.
+    """
+    Assert that two structured arrays are close.
 
     Compares floats relatively and everything else exactly.
+
+    Parameters
+    ----------
+    x, y : array-like
+        Structured arrays to be compared.
     """
     assert x.dtype == y.dtype
     for name in x.dtype.names:
@@ -76,13 +86,29 @@ def assert_allclose_structured(x, y):
 
 
 def matched_filter_snr(data, noise, kernel):
-    """Super slow implementation of matched filter SNR for testing.
+    r"""
+    Super slow implementation of matched filter SNR for testing.
 
-    At each pixel, value is
+    At each output pixel :math:`i`, the value is:
 
-        sum(data[i] * kernel[i] / noise[i]^2)
-        -------------------------------------
-        sqrt(sum(kernel[i]^2 / noise[i]^2))
+    .. math::
+
+        \frac{\sum(\text{data}[i] * \text{kernel}[i] / \text{noise}[i]^2)}
+            {\sqrt\sum(\text{kernel}[i]^2 / \text{noise}[i]^2)}
+
+    Parameters
+    ----------
+    data : array-like
+        The 2D data to be tested.
+    noise : array-like
+        The noise corresponding to the input ``data``.
+    kernel : array-like
+        The kernel used for filtering.
+
+    Returns
+    -------
+    array-like
+        The output SNR array, the same size as ``data``.
     """
     ctr = kernel.shape[0] // 2, kernel.shape[1] // 2
     kslice = (
@@ -138,7 +164,8 @@ def matched_filter_snr(data, noise, kernel):
 
 @pytest.mark.skipif(NO_FITS, reason="no FITS reader")
 def test_vs_sextractor():
-    """Test behavior of sep versus sextractor.
+    """
+    Test behavior of sep versus sextractor.
 
     Note: we turn deblending off for this test. This is because the
     deblending algorithm uses a random number generator. Since the sequence
@@ -282,6 +309,14 @@ def test_vs_sextractor():
 
 
 def test_masked_background():
+    """
+    Check the background filtering.
+
+    Check that the derived background is consistent with an explicit
+    mask, masking no pixels. Also check that the expected result is
+    returned if certain pixels are masked.
+    """
+
     data = 0.1 * np.ones((6, 6))
     data[1, 1] = 1.0
     data[4, 1] = 1.0
@@ -313,7 +348,9 @@ def test_masked_background():
 
 @pytest.mark.skipif(NO_FITS, reason="no FITS reader")
 def test_background_special():
-    """Test special methods of Background"""
+    """
+    Test the special methods of `sep_pjw.Background`.
+    """
 
     bkg = sep.Background(image_data, bw=64, bh=64, fw=3, fh=3)
 
@@ -329,7 +366,9 @@ def test_background_special():
 
 
 def test_background_boxsize():
-    """Test that background works when boxsize is same as image"""
+    """
+    Test that `sep_pjw.Background` works when boxsize is same as image.
+    """
 
     ny, nx = 100, 100
     data = np.ones((ny, nx), dtype=np.float64)
@@ -338,7 +377,9 @@ def test_background_boxsize():
 
 
 def test_background_rms():
-    """Test that Background.rms() at least works"""
+    """
+    Test that `sep_pjw.Background.rms` at least works.
+    """
 
     ny, nx = 1024, 1024
     data = np.random.randn(ny, nx)
@@ -354,6 +395,12 @@ def test_background_rms():
 
 @pytest.mark.skipif(NO_FITS, reason="no FITS reader")
 def test_extract_with_noise_array():
+    """
+    Test extraction with a flat noise array.
+
+    This checks that a constant noise array gives the same result as
+    extracting without a noise array, for a given threshold.
+    """
 
     # Get some background-subtracted test data:
     data = np.copy(image_data)
@@ -391,7 +438,8 @@ def test_extract_with_noise_array():
 
 
 def test_extract_with_noise_convolution():
-    """Test extraction when there is both noise and convolution.
+    """
+    Test extraction when there is both noise and convolution.
 
     This will use the matched filter implementation, and will handle bad pixels
     and edge effects gracefully.
@@ -432,8 +480,12 @@ def test_extract_with_noise_convolution():
 
 
 def test_extract_matched_filter_at_edge():
-    """Exercise bug where bright star at end of image not detected
-    with noise array and matched filter on."""
+    """
+    Test bright source detection at the edge of an image.
+
+    Exercise bug where bright star at end of image not detected
+    with noise array and matched filter on.
+    """
 
     data = np.zeros((20, 20))
     err = np.ones_like(data)
@@ -455,6 +507,9 @@ def test_extract_matched_filter_at_edge():
 
 @pytest.mark.skipif(NO_FITS, reason="no FITS reader")
 def test_extract_with_mask():
+    """
+    Test that object detection only occurs in unmasked regions.
+    """
 
     # Get some background-subtracted test data:
     data = np.copy(image_data)
@@ -476,6 +531,12 @@ def test_extract_with_mask():
 
 @pytest.mark.skipif(NO_FITS, reason="no FITS reader")
 def test_extract_segmentation_map():
+    """
+    Test the returned segmentation map.
+
+    Check that the segmentation map has the same dimensions as the input
+    image, and that the number of object pixels match the catalogue field.
+    """
 
     # Get some background-subtracted test data:
     data = np.copy(image_data)
@@ -492,6 +553,13 @@ def test_extract_segmentation_map():
 
 @pytest.mark.skipif(NO_FITS, reason="no FITS reader")
 def test_extract_seg_map_array():
+    """
+    Test the extraction when an existing segmentation map is supplied.
+
+    Test that the returned catalogue is equal with and without a variable
+    noise array, and that the majority of fields match even when
+    deblending is performed on the original extraction.
+    """
 
     # Get some background-subtracted test data:
     data = np.copy(image_data)
@@ -553,6 +621,21 @@ def test_extract_seg_map_array():
                 else:
                     assert_allclose(o_i[n], o_ii[n], atol=np.sqrt(o_i[v]))
 
+        # Perform a second test with deblending disabled.
+        objects3, segmap3 = sep.extract(
+            data, 1.5, err, segmentation_map=True, deblend_cont=1.0
+        )
+
+        objects4, segmap4 = sep.extract(
+            data, 1.5, err, segmentation_map=segmap3, deblend_cont=1.0
+        )
+
+        # The flag will not be the same, as the second extraction does not test
+        # for deblended objects.
+        objects3 = rfn.drop_fields(objects3, "flag")
+        objects4 = rfn.drop_fields(objects4, "flag")
+        assert_allclose_structured(objects3, objects4)
+
 
 # -----------------------------------------------------------------------------
 # aperture tests
@@ -564,8 +647,12 @@ data_shape = (1000, 1000)
 
 
 def test_aperture_dtypes():
-    """Ensure that all supported image dtypes work in sum_circle() and
-    give the same answer"""
+    """
+    Test the aperture extraction of multiple data types.
+
+    Ensure that all supported image dtypes work in sum_circle() and
+    give the same answer.
+    """
 
     r = 3.0
 
@@ -590,7 +677,9 @@ def test_apertures_small_ellipse_exact():
 
 
 def test_apertures_all():
-    """Test that aperture subpixel sampling works"""
+    """
+    Test that aperture subpixel sampling works.
+    """
 
     data = np.random.rand(*data_shape)
     r = 3.0
@@ -612,7 +701,9 @@ def test_apertures_all():
 
 
 def test_apertures_exact():
-    """Test area as measured by exact aperture modes on array of ones"""
+    """
+    Test area as measured by exact aperture modes on array of ones.
+    """
 
     theta = np.random.uniform(-np.pi / 2.0, np.pi / 2.0, naper)
     ratio = np.random.uniform(0.2, 1.0, naper)
@@ -641,7 +732,9 @@ def test_apertures_exact():
 
 
 def test_aperture_bkgann_overlapping():
-    """Test bkgann functionality in circular & elliptical apertures."""
+    """
+    Test bkgann functionality in circular & elliptical apertures.
+    """
 
     # If bkgann overlaps aperture exactly, result should be zero
     # (with subpix=1)
@@ -657,7 +750,9 @@ def test_aperture_bkgann_overlapping():
 
 
 def test_aperture_bkgann_ones():
-    """Test bkgann functionality with flat data"""
+    """
+    Test bkgann functionality with flat data.
+    """
 
     data = np.ones(data_shape)
     r = 5.0
@@ -679,7 +774,9 @@ def test_aperture_bkgann_ones():
 
 
 def test_masked_segmentation_measurements():
-    """Test measurements with segmentation masking"""
+    """
+    Test measurements with segmentation masking.
+    """
 
     NX = 100
     data = np.zeros((NX * 2, NX * 2))
@@ -756,6 +853,9 @@ def test_masked_segmentation_measurements():
 
 
 def test_mask_ellipse():
+    """
+    Test that the correct number of elements are masked with an ellipse.
+    """
     arr = np.zeros((20, 20), dtype=np.bool_)
 
     # should mask 5 pixels:
@@ -768,6 +868,9 @@ def test_mask_ellipse():
 
 
 def test_flux_radius():
+    """
+    Test that the correct radius is returned for varying flux fractions.
+    """
     data = np.ones(data_shape)
     fluxfrac = [0.2**2, 0.3**2, 0.7**2, 1.0]
     true_r = [2.0, 3.0, 7.0, 10.0]
@@ -779,7 +882,9 @@ def test_flux_radius():
 
 
 def test_mask_ellipse_alt():
-    """mask_ellipse with cxx, cyy, cxy parameters."""
+    """
+    Mask_ellipse with cxx, cyy, cxy parameters.
+    """
     arr = np.zeros((20, 20), dtype=np.bool_)
 
     # should mask 5 pixels:
@@ -796,9 +901,13 @@ def test_mask_ellipse_alt():
 
 
 def test_byte_order_exception():
-    """Test that error about byte order is raised with non-native
+    """
+    Test that SEP-PJW will not run with non-native byte order.
+
+    Test that error about byte order is raised with non-native
     byte order input array. This should happen for Background, extract,
-    and aperture functions."""
+    and aperture functions.
+    """
 
     data = np.ones((100, 100), dtype=np.float64)
     data = data.byteswap(True).newbyteorder()
@@ -808,7 +917,9 @@ def test_byte_order_exception():
 
 
 def test_set_pixstack():
-    """Ensure that setting the pixel stack size works."""
+    """
+    Ensure that setting the pixel stack size works.
+    """
     old = sep.get_extract_pixstack()
     new = old * 2
     sep.set_extract_pixstack(new)
@@ -817,7 +928,9 @@ def test_set_pixstack():
 
 
 def test_set_sub_object_limit():
-    """Ensure that setting the sub-object deblending limit works."""
+    """
+    Ensure that setting the sub-object deblending limit works.
+    """
     old = sep.get_sub_object_limit()
     new = old * 2
     sep.set_sub_object_limit(new)
@@ -826,8 +939,12 @@ def test_set_sub_object_limit():
 
 
 def test_long_error_msg():
-    """Ensure that the error message is created successfully when
-    there is an error detail."""
+    """
+    Test the error handling in SEP-PJW.
+
+    Ensure that the error message is created successfully when
+    there is an error detail.
+    """
 
     # set extract pixstack to an insanely small value; this will trigger
     # a detailed error message when running sep.extract()
