@@ -94,7 +94,7 @@ void printbox(float * im, int w, int h, int xmin, int xmax, int ymin, int ymax)
 }
 
 /* an extremely dumb reader for our specific test FITS file! */
-int read_test_image(char * fname, float ** data, int * nx, int * ny) {
+int read_test_image(char * fname, float ** data, int64_t * nx, int64_t * ny) {
   FILE * f;
   char buf[80]; /* buffer to hold a line */
   long pos;
@@ -197,7 +197,8 @@ void print_time(char * s, uint64_t tdiff) {
 
 int main(int argc, char ** argv) {
   char *fname1, *fname2;
-  int i, status, nx, ny;
+  int i, status;
+  int64_t nx, ny;
   double *flux, *fluxerr, *fluxt, *fluxerrt, *area, *areat;
   short *flag, *flagt;
   float *data, *imback;
@@ -231,7 +232,23 @@ int main(int argc, char ** argv) {
   /* background estimation */
   t0 = gettime_ns();
   sep_image im = {
-      data, NULL, NULL, NULL, SEP_TFLOAT, 0, 0, 0, nx, ny, 0.0, SEP_NOISE_NONE, 1.0, 0.0
+      data,
+      NULL,
+      NULL,
+      NULL,
+      SEP_TFLOAT,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      nx,
+      ny,
+      0.0,
+      SEP_NOISE_NONE,
+      1.0,
+      0.0
   };
   status = sep_background(&im, 64, 64, 3, 3, 0.0, &bkg);
   t1 = gettime_ns();

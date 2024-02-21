@@ -314,7 +314,7 @@ static point circle_segment_single2(double x1, double y1, double x2, double y2) 
 
 /* Intersection(s) of a segment with the unit circle. Discard any
    solution not on the segment. */
-inline intersections circle_segment(double x1, double y1, double x2, double y2) {
+static inline intersections circle_segment(double x1, double y1, double x2, double y2) {
   intersections inter, inter_new;
   point pt1, pt2;
 

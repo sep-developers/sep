@@ -164,6 +164,7 @@ int lutz(
   objlist->nobj = 0;
   co = pstop = 0;
   curpixinfo.pixnb = 1;
+  curpixinfo.flag = curpixinfo.firstpix = curpixinfo.lastpix = 0;
 
   for (yl = sty; yl <= eny; yl++, iscan += step) {
     ps = COMPLETE;
