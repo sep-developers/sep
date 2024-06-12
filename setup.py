@@ -39,7 +39,7 @@ else:
             depends=headerfiles,
             define_macros=[
                 ("_USE_MATH_DEFINES", "1"),
-                ("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION"),
+                ("NPY_NO_DEPRECATED_API", "NPY_2_0_API_VERSION"),
             ],
         )
     ]

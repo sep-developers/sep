@@ -586,7 +586,7 @@ cdef packed struct Object:
     np.int64_t ycpeak
     np.int64_t xpeak
     np.int64_t ypeak
-    np.int_t flag
+    long flag
 
 default_kernel = np.array([[1.0, 2.0, 1.0],
                            [2.0, 4.0, 2.0],
