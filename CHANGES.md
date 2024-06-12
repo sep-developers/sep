@@ -1,4 +1,9 @@
-v1.3.4 (21 February 2023)
+v1.3.5 (12 June 2024)
+=====================
+
+* Small fixes and updates to ensure compatibility with NumPy 2.0.
+
+v1.3.4 (21 February 2024)
 ========================
 
 * Include .clang-format as a pre-commit hook, to ensure consistent code
@@ -7,7 +12,7 @@ v1.3.4 (21 February 2023)
   [v1.3.0](https://github.com/PJ-Watson/sep-pjw/releases/tag/v1.3.0).
 * All header files include the correct definitions.
 
-v1.3.3 (7 February 2023)
+v1.3.3 (7 February 2024)
 ========================
 
 * Add changelog to documentation.
@@ -16,7 +21,7 @@ v1.3.3 (7 February 2023)
 * Fix bug with precision loss when calculating threshold.
 * Improve error handling when object pixels exceed pix stack.
 
-v1.3.2 (5 February 2023)
+v1.3.2 (5 February 2024)
 ========================
 
 * Move documentation to new location, fix package names and imports.
@@ -24,7 +29,7 @@ v1.3.2 (5 February 2023)
 * Fix C compilation errors on windows (VLAs).
 * Publish updated version to PyPI under new name.
 
-v1.3.1 (31 January 2023)
+v1.3.1 (31 January 2024)
 ========================
 
 * Formatting changes (follow [black](https://github.com/psf/black)
