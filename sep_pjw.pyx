@@ -586,7 +586,7 @@ cdef packed struct Object:
     np.int64_t ycpeak
     np.int64_t xpeak
     np.int64_t ypeak
-    long flag
+    short flag
 
 default_kernel = np.array([[1.0, 2.0, 1.0],
                            [2.0, 4.0, 2.0],
@@ -807,7 +807,7 @@ def extract(np.ndarray data not None, float thresh, err=None, var=None,
                                       ('ycpeak', np.int64),
                                       ('xpeak', np.int64),
                                       ('ypeak', np.int64),
-                                      ('flag', np.int_)]))
+                                      ('flag', np.short)]))
 
     for i in range(catalog.nobj):
         result['thresh'][i] = catalog.thresh[i]
