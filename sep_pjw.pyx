@@ -443,7 +443,7 @@ cdef class Background:
         def __get__(self):
             return sep_bkg_globalrms(self.ptr)
 
-    def back(self, dtype=None):
+    def back(self, dtype=None, copy=None):
         """back(dtype=None)
 
         Create an array of the background.
@@ -473,7 +473,10 @@ cdef class Background:
         status = sep_bkg_array(self.ptr, &buf[0, 0], sep_dtype)
         _assert_ok(status)
 
-        return result
+        if copy:
+            return result.copy()
+        else:
+            return result
 
     def rms(self, dtype=None):
         """rms(dtype=None)
@@ -540,8 +543,8 @@ cdef class Background:
         status = sep_bkg_subarray(self.ptr, &buf[0, 0], sep_dtype)
         _assert_ok(status)
 
-    def __array__(self, dtype=None):
-        return self.back(dtype=dtype)
+    def __array__(self, dtype=None, copy=None):
+        return self.back(dtype=dtype, copy=copy)
 
     def __rsub__(self, np.ndarray data not None):
         data = np.copy(data)
