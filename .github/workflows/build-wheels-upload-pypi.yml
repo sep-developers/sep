@@ -18,7 +18,13 @@ jobs:
   # The first and second job run in parallel.
   # The uploading jos needs to have the other two finished without error.
 
+  # From now on, we run the tests before continuing with these jobs.
+
+  run_tests:
+    uses: ./.github/workflows/python-package-tox.yml
+
   build_sdist:
+    needs: [run_tests]
 
     # First the source distribution is done on ubuntu. This is not related
     # to any operating system, so we could do it on the default os.
@@ -60,6 +66,7 @@ jobs:
           path: dist/*.tar.gz
 
   build_wheels:
+    needs: [run_tests]
 
     # Second the wheels are build for different OS and python versions. This is
     # done with the help of the `cibuildwheel` package.

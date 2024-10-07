@@ -413,9 +413,17 @@ def test_extract_with_noise_array():
     # convolved. Near edges, the convolution doesn't adjust for pixels
     # off edge boundaries. As a result, the convolved noise map is not
     # all ones.
-    objects = sep.extract(data, 1.5 * bkg.globalrms, filter_kernel=None)
+    # Deblending is also turned off, as this appears to differ slightly
+    # across platforms - see `test_vs_sextractor()`.
+    objects = sep.extract(
+        data, 1.5 * bkg.globalrms, filter_kernel=None, deblend_cont=1.0
+    )
     objects2 = sep.extract(
-        data, 1.5 * bkg.globalrms, err=np.ones_like(data), filter_kernel=None
+        data,
+        1.5 * bkg.globalrms,
+        err=np.ones_like(data),
+        filter_kernel=None,
+        deblend_cont=1.0,
     )
 
     names_to_remove = ["errx2", "erry2", "errxy"]
@@ -423,18 +431,18 @@ def test_extract_with_noise_array():
     objects = objects[names_to_keep]
     objects2 = objects2[names_to_keep]
 
-    assert_equal(objects, objects2)
+    assert_allclose_structured(objects, objects2)
 
     # Less trivial test where thresh is realistic. Still a flat noise map.
     noise = bkg.globalrms * np.ones_like(data)
-    objects2 = sep.extract(data, 1.5, err=noise, filter_kernel=None)
+    objects2 = sep.extract(data, 1.5, err=noise, filter_kernel=None, deblend_cont=1.0)
 
     names_to_remove = ["errx2", "erry2", "errxy"]
     names_to_keep = [i for i in objects.dtype.names if i not in names_to_remove]
     objects = objects[names_to_keep]
     objects2 = objects2[names_to_keep]
 
-    assert_equal(objects, objects2)
+    assert_allclose_structured(objects, objects2)
 
 
 def test_extract_with_noise_convolution():
