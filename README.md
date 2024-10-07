@@ -3,7 +3,7 @@ SEP-PJW
 
 Python and C library for Source Extraction and Photometry, forked from [kbarbary/sep](https://github.com/kbarbary/sep) to provide additional features and bug fixes.
 
-![Build Status](https://github.com/PJ-Watson/sep-pjw/workflows/Python%20package/badge.svg)
+![Build Status](https://github.com/PJ-Watson/sep-pjw/workflows/CI/badge.svg)
 [![PyPI](https://img.shields.io/pypi/v/sep-pjw.svg)](https://pypi.python.org/pypi/sep-pjw)
 [![Documentation Status](https://readthedocs.org/projects/sep-pjw/badge/?version=latest)](https://sep-pjw.readthedocs.io/en/latest/?badge=latest)
 [![JOSS](http://joss.theoj.org/papers/10.21105/joss.00058/status.svg)](http://dx.doi.org/10.21105/joss.00058)

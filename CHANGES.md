@@ -1,3 +1,11 @@
+v1.3.6 (7 October 2024)
+=======================
+
+* Fix wrong int type in Windows
+  ([#2](https://github.com/PJ-Watson/sep-pjw/issues/2), thanks to
+  @acenko for pointing this out).
+* Update tests to run on multiple operating systems.
+
 v1.3.5 (12 June 2024)
 =====================
 
