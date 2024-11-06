@@ -72,7 +72,7 @@ jobs:
     # done with the help of the `cibuildwheel` package.
     #
     # The wheels are built for Windows, Linux and MacOS and the python versions
-    # 3.9 - 3.12.
+    # 3.9 - 3.13.
     #
     # The three operating system could be done in parallel.
     name: Build wheels on ${{ matrix.os }}
@@ -116,7 +116,7 @@ jobs:
         if: matrix.cibw_archs == 'aarch64'
         run: python -m cibuildwheel --output-dir wheelhouse
         env:
-          CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-*"
+          CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-* cp313-*"
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
           CIBW_MANYLINUX_I686_IMAGE: manylinux2014
           CIBW_BUILD_VERBOSITY: 1
@@ -127,7 +127,7 @@ jobs:
         if: matrix.cibw_archs != 'aarch64'
         run: python -m cibuildwheel --output-dir wheelhouse
         env:
-          CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-*"
+          CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-* cp313-*"
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
           CIBW_MANYLINUX_I686_IMAGE: manylinux2014
           CIBW_BUILD_VERBOSITY: 1
