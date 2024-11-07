@@ -25,7 +25,10 @@
 
 #define DETAILSIZE 512
 
-const char * const sep_version_string = "1.3.5";
+#ifndef SEP_VERSION_STRING
+#define SEP_VERSION_STRING "1.3.6"
+#endif
+const char * const sep_version_string = SEP_VERSION_STRING;
 static _Thread_local char _errdetail_buffer[DETAILSIZE] = "";
 
 /****************************************************************************/

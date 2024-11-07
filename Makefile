@@ -1,21 +1,41 @@
 
 OS ?= $(shell sh -c 'uname -s | tr "[A-Z]" "[a-z]"')
 
-SOMAJOR = 1
-SOMINOR = 0
-SOBUGFIX = 3
+DESCRIBE           := $(shell git describe --match "v*" --always --tags)
+DESCRIBE_PARTS     := $(subst -, ,$(DESCRIBE))
+
+VERSION_TAG        := $(word 1,$(DESCRIBE_PARTS))
+COMMITS_SINCE_TAG  := $(word 2,$(DESCRIBE_PARTS))
+BUILD_ID           := $(word 3,$(DESCRIBE_PARTS))
+
+VERSION            := $(subst v,,$(VERSION_TAG))
+VERSION_PARTS      := $(subst ., ,$(VERSION))
+
+MAJOR              := $(word 1,$(VERSION_PARTS))
+MINOR              := $(word 2,$(VERSION_PARTS))
+MICRO              := $(word 3,$(VERSION_PARTS))
+
+NEXT_MICRO         := $(shell echo $$(($(MICRO)+1)))
+
+ifeq ($(strip $(COMMITS_SINCE_TAG)),)
+CURRENT_VERSION_MICRO := $(MAJOR).$(MINOR).$(MICRO)
+CURRENT_MICRO := $(MICRO)
+else
+CURRENT_VERSION_MICRO := $(MAJOR).$(MINOR).$(NEXT_MICRO)
+CURRENT_MICRO := $(NEXT_MICRO)-dev$(COMMITS_SINCE_TAG)$(if $(BUILD_ID),-${BUILD_ID},)
+endif
 
 ifeq ($(OS), darwin)
 SONAME = libsep.dylib
-SONAME_MAJOR = libsep.$(SOMAJOR).dylib
-SONAME_FULL = libsep.$(SOMAJOR).$(SOMINOR).$(SOBUGFIX).dylib
+SONAME_MAJOR = libsep.$(MAJOR).dylib
+SONAME_FULL = libsep.$(MAJOR).$(MINOR).$(CURRENT_MICRO).dylib
 SONAME_FLAG = -install_name
 LDPATHENV = DYLD_LIBRARY_PATH
 else
 ifeq ($(OS), linux)
 SONAME = libsep.so
-SONAME_MAJOR = libsep.so.$(SOMAJOR)
-SONAME_FULL = libsep.so.$(SOMAJOR).$(SOMINOR).$(SOBUGFIX)
+SONAME_MAJOR = libsep.so.$(MAJOR)
+SONAME_FULL = libsep.so.$(MAJOR).$(MINOR).$(CURRENT_MICRO)
 SONAME_FLAG = -soname
 LDPATHENV = LD_LIBRARY_PATH
 else
@@ -36,6 +56,7 @@ LDFLAGS ?=
 
 CPPFLAGS += -Isrc
 CFLAGS += -Wall -Wextra -Wcast-qual -O3 -fvisibility=hidden  # -Werror
+CFLAGS += -DSEP_VERSION_STRING=\"$(MAJOR).$(MINOR).$(CURRENT_MICRO)\"
 CFLAGS_LIB = $(CFLAGS) -fPIC
 LDFLAGS_LIB = $(LDFLAGS) -shared -Wl,$(SONAME_FLAG),$(SONAME_MAJOR)
 
