@@ -20,6 +20,11 @@ def _new_local_scheme(version: ScmVersion) -> str:
     return version.format_choice("", "-{node}")
 
 
+c_version_string = get_version(
+    version_scheme=_new_version_scheme,
+    local_scheme=_new_local_scheme,
+)
+
 # from setuptools import setup
 from setuptools.dist import Distribution
 
@@ -54,12 +59,7 @@ else:
                 ("_USE_MATH_DEFINES", "1"),
                 ("NPY_NO_DEPRECATED_API", "NPY_2_0_API_VERSION"),
             ],
-            extra_compile_args=[f"""-DSEP_VERSION_STRING='{
-                    get_version(
-                        version_scheme=_new_version_scheme,
-                        local_scheme=_new_local_scheme,
-                    )
-                }'"""],
+            extra_compile_args=['-DSEP_VERSION_STRING="' + c_version_string + '"'],
         )
     ]
     extensions = cythonize(
