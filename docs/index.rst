@@ -100,7 +100,7 @@ Usage Guide
    tutorial
    filter
    apertures
-   changelog
+   changelogs/changelog
 
 .. toctree::
    :hidden:

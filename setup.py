@@ -6,6 +6,24 @@ import sys
 from glob import glob
 
 from setuptools import Extension, setup
+from setuptools_scm import ScmVersion, get_version
+from setuptools_scm.version import guess_next_version
+
+
+def _new_version_scheme(version: ScmVersion) -> str:
+
+    return version.format_next_version(guess_next_version, "{guessed}-dev{distance}")
+
+
+def _new_local_scheme(version: ScmVersion) -> str:
+
+    return version.format_choice("", "-{node}")
+
+
+c_version_string = get_version(
+    version_scheme=_new_version_scheme,
+    local_scheme=_new_local_scheme,
+)
 
 # from setuptools import setup
 from setuptools.dist import Distribution
@@ -41,6 +59,7 @@ else:
                 ("_USE_MATH_DEFINES", "1"),
                 ("NPY_NO_DEPRECATED_API", "NPY_2_0_API_VERSION"),
             ],
+            extra_compile_args=['-DSEP_VERSION_STRING="' + c_version_string + '"'],
         )
     ]
     extensions = cythonize(
