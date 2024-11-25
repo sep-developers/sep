@@ -1,34 +1,36 @@
-SEP-PJW
-=======
+SEP
+===
 
-Python and C library for Source Extraction and Photometry, forked from [kbarbary/sep](https://github.com/kbarbary/sep) to provide additional features and bug fixes.
+Python and C library for Source Extraction and Photometry, originally
+developed at [kbarbary/sep](https://github.com/kbarbary/sep) and later
+maintained at [PJ-Watson/sep-pjw](https://github.com/PJ-Watson/sep-pjw).
 
-[![PyPI](https://img.shields.io/pypi/v/sep-pjw?label=PyPI)](https://pypi.python.org/pypi/sep-pjw)
-[![PyPI - Downloads](https://img.shields.io/pypi/dm/sep-pjw?label=PyPI%20Downloads)
-](https://pypi.python.org/pypi/sep-pjw)
-![Build Status](https://github.com/PJ-Watson/sep-pjw/workflows/CI/badge.svg)
+[![PyPI](https://img.shields.io/pypi/v/sep?label=PyPI)](https://pypi.python.org/pypi/sep)
+[![PyPI - Downloads](https://img.shields.io/pypi/dm/sep?label=PyPI%20Downloads)
+](https://pypi.python.org/pypi/sep)
+![Build Status](https://github.com/sep-developers/sep/workflows/CI/badge.svg)
 [![Documentation Status](https://readthedocs.org/projects/sep-pjw/badge/?version=latest)](https://sep-pjw.readthedocs.io/en/latest/?badge=latest)
 [![JOSS](http://joss.theoj.org/papers/10.21105/joss.00058/status.svg)](http://dx.doi.org/10.21105/joss.00058)
 
 *"... [it's] an SEP: Somebody Else's Problem."
 "Oh, good. I can relax then."*
 
-SEP-PJW vs. SEP
----------------
+SEP, SEP-PJW, and Package Names
+-------------------------------
 
-The original release of `sep` by Kyle Barbary,
-[kbarbary/sep](https://github.com/kbarbary/sep), no longer appears to be
-maintained. Whilst the package is incredibly useful, there are a few
-outstanding bugs, and support for the latest versions of Python
-(`python>=3.11`) will be limited. The aim of `sep-pjw` is to offer a
-version of `sep` that resolves these issues, whilst maintaining
-compatibility as much as is feasibly possible. Any fixes or updates to
-the original library are documented in [CHANGES.md](./CHANGES.md). For
-existing workflows, the only necessary update will be to change the import
-to
-```python
-import sep_pjw as sep
-```
+`sep` was originally released by Kyle Barbary, at
+[kbarbary/sep](https://github.com/kbarbary/sep) (``sep<=1.2.1``). For a
+brief period, the package was maintained by Peter Watson, under the
+`sep-pjw` package name, at
+[PJ-Watson/sep-pjw](https://github.com/PJ-Watson/sep-pjw) and
+[PyPI/sep-pjw](https://pypi.org/project/sep-pjw/)
+(``1.3.0<=sep-pjw<=1.3.8``). Both of these repositories will be archived,
+and future development will take place at
+[sep-developers/sep](<https://github.com/sep-developers/sep>)
+(``sep>=1.4.0``). Note that there may be some incompatibilities between
+``sep==1.2.1`` and ``sep==1.4.0`` when using the C-API directly (to fix
+an indexing bug arising with large arrays) - all changes are documented
+[here](https://sep-pjw.readthedocs.io/en/latest/changelogs/changes_to_c_api.html).
 
 
 About
@@ -72,19 +74,19 @@ Python
 
 **Install release version:**
 
-SEP-PJW can be installed with [pip](https://pip.pypa.io):
+SEP can be installed with [pip](https://pip.pypa.io):
 
 ```
-python -m pip install sep-pjw
+python -m pip install sep
 ```
 
 If you get an error about permissions, you are probably using your
 system Python. In this case, we recommend using [pip's "user
 install"](https://pip.pypa.io/en/latest/user_guide/#user-installs)
-option to install sep-pjw into your user directory:
+option to install sep into your user directory:
 
 ```
-python -m pip install --user sep-pjw
+python -m pip install --user sep
 ```
 
 Do **not** install sep or other third-party Python packages using
@@ -153,14 +155,14 @@ and header file in `/path/to/prefix/include`. The default prefix is
 Contributing
 ------------
 
-- Report a bug or documentation issue: http://github.com/PJ-Watson/sep-pjw/issues
-- Ask (or answer) a question: https://github.com/PJ-Watson/sep-pjw/discussions/categories/q-a
+- Report a bug or documentation issue: http://github.com/sep-developers/issues
+- Ask (or answer) a question: https://github.com/sep-developers/sep/discussions/categories/q-a
 
-Development of SEP-PJW takes place on GitHub at
-[PJ-Watson/sep-pjw](http://github.com/PJ-Watson/sep-pjw).  Contributions of bug fixes,
+Development of SEP takes place on GitHub at
+[sep-developers/sep](http://github.com/sep-developers/sep).  Contributions of bug fixes,
 documentation improvements and minor feature additions are welcome via
 GitHub pull requests. For major features, it is best to discuss the change first
-via [GitHub Discussions](https://github.com/PJ-Watson/sep-pjw/discussions/).
+via [GitHub Discussions](https://github.com/sep-developers/sep/discussions/).
 
 
 Citation
@@ -280,4 +282,4 @@ the data.
 
 **I have more questions!**
 
-Open a discussion on the [GitHub Discussions page](https://github.com/PJ-Watson/sep-pjw/discussions/categories/q-a)!
+Open a discussion on the [GitHub Discussions page](https://github.com/sep-developers/sep/discussions/categories/q-a)!

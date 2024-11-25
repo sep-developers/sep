@@ -1,5 +1,5 @@
-SEP-PJW
-=======
+SEP
+===
 
 *Python library for Source Extraction and Photometry*
 
@@ -49,16 +49,22 @@ instructions.
 - Masking of elliptical regions on images.
 
 
-SEP-PJW vs. SEP
-...............
+SEP, SEP-PJW, and Package Names
+...............................
 
-The original release of ``sep`` by Kyle Barbary,
-`kbarbary/sep <https://github.com/kbarbary/sep>`_, no longer appears to be
-maintained. Whilst the package is incredibly useful, there are a few
-outstanding bugs, and support for the latest versions of `Python` will be
-limited. The aim of ``sep-pjw`` is to offer a version of sep that resolves
-these issues, whilst maintaining compatibility as much as is feasibly
-possible.
+``sep`` was originally released by Kyle Barbary, at
+`kbarbary/sep <https://github.com/kbarbary/sep>`_ (``sep<=1.2.1``). For a
+brief period, the package was maintained by Peter Watson, under the
+``sep-pjw`` package name, at
+`PJ-Watson/sep-pjw <https://github.com/PJ-Watson/sep-pjw>`_ and
+`PyPI/sep-pjw <https://pypi.org/project/sep-pjw/>`_
+(``1.3.0<=sep-pjw<=1.3.8``). Both of these repositories will be archived,
+and future development will take place at
+`sep-developers/sep <https://github.com/sep-developers/sep>`_
+(``sep>=1.4.0``).
+Note that there may be some incompatibilities between ``sep==1.2.1`` and
+``sep==1.4.0`` when using the C-API directly -- the changes are documented
+:doc:`here <changelogs/changes_to_c_api>`.
 
 
 Installation
@@ -67,27 +73,27 @@ Installation
 with conda
 ..........
 
-SEP-PJW can be installed with conda from the ``conda-forge`` channel::
+SEP can be installed with conda from the ``conda-forge`` channel::
 
-    conda install -c conda-forge sep-pjw
+    conda install -c conda-forge sep
 
 
 with pip
 ........
 
-SEP-PJW can also be installed with `pip <https://pip.pypa.io>`_. After
+SEP can also be installed with `pip <https://pip.pypa.io>`_. After
 ensuring that numpy is installed, run ::
 
-    python -m pip install sep-pjw
+    python -m pip install sep
 
 If you get an error about permissions, you are probably using your
 system Python. In this case, I recommend using `pip's "user install"
 <https://pip.pypa.io/en/latest/user_guide/#user-installs>`_ option to
 install sep into your user directory ::
 
-    python -m pip install --user sep-pjw
+    python -m pip install --user sep
 
-Do **not** install ``sep-pjw`` or other third-party Python packages using
+Do **not** install ``sep`` or other third-party Python packages using
 ``sudo`` unless you are fully aware of the risks.
 
 
@@ -114,10 +120,10 @@ Contributing
 ------------
 
 Report a bug or documentation issue:
-http://github.com/PJ-Watson/sep-pjw/issues
+http://github.com/sep-developers/sep/issues
 
-Development of ``sep-pjw`` takes place on GitHub at
-http://github.com/PJ-Watson/sep-pjw.  Contributions of bug fixes,
+Development of ``sep`` takes place on GitHub at
+http://github.com/sep-developers/sep.  Contributions of bug fixes,
 documentation improvements and minor feature additions are welcome via
 GitHub pull requests. For major features, it is best to open an issue
 discussing the change first.

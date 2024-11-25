@@ -505,11 +505,10 @@ float backguess(backstruct * bkg, float * mean, float * sigma)
       sig += dpix * i;
     }
 
-    med = hihigh >= histo
-              ? ((hihigh - histo) + 0.5
-                 + ((double)highsum - lowsum)
-                       / (2.0 * (*hilow > *hihigh ? *hilow : *hihigh)))
-              : 0.0;
+    med = hihigh >= histo ? ((hihigh - histo) + 0.5
+                             + ((double)highsum - lowsum)
+                                   / (2.0 * (*hilow > *hihigh ? *hilow : *hihigh)))
+                          : 0.0;
     if (sum) {
       mea /= (double)sum;
       sig = sig / sum - mea * mea;

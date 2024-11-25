@@ -4,11 +4,11 @@ Matched Filter (Convolution)
 For source detection, SEP supports using a matched filter, which can
 give the optimal detection signal-to-noise for objects with some known
 shape. This is controlled using the ``filter_kernel`` keyword in
-`sep_pjw.extract`. For example:
+`sep.extract`. For example:
 
 .. code-block:: python
 
-    import sep_pjw as sep
+    import sep
 
     kernel = np.array([[1., 2., 3., 2., 1.],
                        [2., 3., 5., 3., 2.],
@@ -35,7 +35,7 @@ Correct treatment in the presence of variable noise
 In Source Extractor, the matched filter is implemented assuming there
 is equal noise across all pixels in the kernel. The matched filter
 then simplifies to a convolution of the data with the kernel. In
-`sep_pjw.extract`, this is also the behavior when there is constant noise
+`sep.extract`, this is also the behavior when there is constant noise
 (when ``err`` is not specified).
 
 In the presence of independent noise on each pixel, SEP uses a full

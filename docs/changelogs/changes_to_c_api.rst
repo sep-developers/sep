@@ -2,7 +2,7 @@ Changes to the C API
 ====================
 
 This page details cumulative changes to the C API between v1.2.1 and
-v1.3.7, or since this package was forked from
+v1.4.0, or since this package was forked from
 `kbarbary/sep <https://github.com/kbarbary/sep>`_. Almost all changes to
 the public API are to integer parameters, many of which have been changed
 from ``int`` to ``int64_t``, to fix problems which may arise with
@@ -23,21 +23,26 @@ All changes here are transparent to users of the Python interface.
 
    .. c:var:: int64_t * idcounts
 
-      The number of occurrences of each unique id in an existing segmentation map.
+      The number of occurrences of each unique id in an existing
+      segmentation map.
 
    .. c:var:: int64_t numids
 
       The total number of unique ids in an existing segmentation map.
 
- - The type of ``w``` and ``h``` has changed from ``int`` to ``int64_t``.
+ - The type of ``w`` and ``h`` has changed from ``int`` to ``int64_t``.
 
 .. c:struct:: sep_bkg
 
- - The type of the following parameters has changed from ``int`` to ``int64_t``: ``w``, ``h``, ``bw``, ``bh``, ``nx``, ``ny``, and ``n``.
+ - The type of the following parameters has changed from ``int`` to
+   ``int64_t``: ``w``, ``h``, ``bw``, ``bh``, ``nx``, ``ny``, and ``n``.
 
 .. c:struct:: sep_catalog
 
- - The type of the following parameters has changed from ``int`` to ``int64_t``: ``npix``, ``tnpix``, ``xmin``, ``xmax``, ``ymin``, ``ymax``, ``xcpeak``, ``ycpeak``, ``xpeak``, ``ypeak``, ``pix``, and ``objectspix``.
+ - The type of the following parameters has changed from ``int`` to
+   ``int64_t``: ``npix``, ``tnpix``, ``xmin``, ``xmax``, ``ymin``,
+   ``ymax``, ``xcpeak``, ``ycpeak``, ``xpeak``, ``ypeak``, ``pix``, and
+   ``objectspix``.
 
 .. c:function:: int sep_background()
 

@@ -9,7 +9,7 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "sep-pjw"
+name = "sep"
 dynamic = ["version"]
 authors = [
   { name="Emmanuel Bertin"},
@@ -49,7 +49,7 @@ docs = [
     "sphinx>=7.2",
     "numpydoc>=1.6",
     "matplotlib>=3.6",
-    "furo>=2024.1",
+    "sphinx-astropy[confv2]>=1.9.1",
     "nbsphinx>=0.9.3",
     "pandoc>=2.3",
     "fitsio>=1.2.1",
@@ -58,8 +58,8 @@ docs = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/PJ-Watson/sep-pjw"
-"Bug Tracker" = "https://github.com/PJ-Watson/sep-pjw/issues"
+"Homepage" = "https://github.com/sep-developers/sep"
+"Bug Tracker" = "https://github.com/sep-developers/sep/issues"
 "Documentation" = "http://sep-pjw.readthedocs.org"
 
 [tool.setuptools_scm]

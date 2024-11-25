@@ -46,12 +46,12 @@ else:
     import numpy
     from Cython.Build import cythonize
 
-    sourcefiles = ["sep_pjw.pyx"] + glob(os.path.join("src", "*.c"))
+    sourcefiles = ["sep.pyx"] + glob(os.path.join("src", "*.c"))
     headerfiles = glob(os.path.join("src", "*.h"))
     include_dirs = [numpy.get_include(), "src"]
     extensions = [
         Extension(
-            "sep_pjw",
+            "sep",
             sourcefiles,
             include_dirs=include_dirs,
             depends=headerfiles,

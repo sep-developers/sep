@@ -731,7 +731,7 @@ def extract(np.ndarray data not None, float thresh, err=None, var=None,
                 f"The number of object pixels ({np.nansum(idcounts)}) in "
                 "the segmentation map exceeds the allocated pixel stack "
                 f"({get_extract_pixstack()}). Use "
-                "`sep_pjw.set_extract_pixstack()` to increase the size, "
+                "`sep.set_extract_pixstack()` to increase the size, "
                 "or check that the correct segmentation map has been "
                 "supplied."
             )

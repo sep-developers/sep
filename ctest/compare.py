@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""Compare the output from SEP-PJW against SExtractor."""
+"""Compare the output from SEP against SExtractor."""
 
 from __future__ import print_function
 

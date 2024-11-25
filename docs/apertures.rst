@@ -3,14 +3,14 @@ Aperture photometry
 
 There are four aperture functions available:
 
-======================  =========================
+==================  =========================
 Function                Sums data within...
-======================  =========================
-`sep_pjw.sum_circle`    circle(s)
-`sep_pjw.sum_circann`   circular annulus/annuli
-`sep_pjw.sum_ellipse`   ellipse(s)
-`sep_pjw.sum_ellipann`  elliptical annulus/annuli
-======================  =========================
+==================  =========================
+`sep.sum_circle`    circle(s)
+`sep.sum_circann`   circular annulus/annuli
+`sep.sum_ellipse`   ellipse(s)
+`sep.sum_ellipann`  elliptical annulus/annuli
+==================  =========================
 
 The follow examples demonstrate options for circular aperture
 photometry. The other functions behave similarly.
@@ -89,13 +89,13 @@ Apply a mask (same shape as data). Pixels where the mask is True are
 
 **Local background subtraction**
 
-The `~sep_pjw.sum_circle` and `~sep_pjw.sum_ellipse` functions have options
+The `~sep.sum_circle` and `~sep.sum_ellipse` functions have options
 for performing local background subtraction. For example, to subtract the
 background calculated in an annulus between 6 and 8 pixel radius:
 
 .. code-block:: python
 
-   flux, fluxerr, flag = sep_pjw.sum_circle(data, objs['x'], objs['y'], 3.0,
+   flux, fluxerr, flag = sep.sum_circle(data, objs['x'], objs['y'], 3.0,
                                         mask=mask, bkgann=(6., 8.))
 
 Pixels in the background annulus are not subsampled and any masked

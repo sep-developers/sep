@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""Benchmarking SEP-PJW against equivalent photutils functions."""
+"""Benchmarking SEP against equivalent photutils functions."""
 
 from __future__ import print_function
 
@@ -8,7 +8,8 @@ import time
 from os.path import join
 
 import numpy as np
-import sep_pjw as sep
+
+import sep
 
 # try to import photutils for comparison timing
 try:
@@ -75,18 +76,22 @@ print("")
 if HAVE_PHOTUTILS:
     print("sep version:      ", sep.__version__)
     print("photutils version:", photutils.__version__)
-    print("""
+    print(
+        """
 | test                    | sep             | photutils       | ratio  |
-|-------------------------|-----------------|-----------------|--------|""")
+|-------------------------|-----------------|-----------------|--------|"""
+    )
     blankline = (
         "|                         |                 |                 |        |"
     )
 
 else:
     print("sep version: ", sep.__version__)
-    print("""
+    print(
+        """
 | test                    | sep             |
-|-------------------------|-----------------|""")
+|-------------------------|-----------------|"""
+    )
     blankline = "|                         |                 |"
 
 nloop = 50

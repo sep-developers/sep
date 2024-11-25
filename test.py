@@ -1,6 +1,6 @@
 #!/usr/bin/env py.test
 
-"""Test the python functionality of SEP-PJW."""
+"""Test the python functionality of SEP."""
 
 from __future__ import division, print_function
 
@@ -8,9 +8,10 @@ import os
 
 import numpy as np
 import pytest
-import sep_pjw as sep
 from numpy.lib import recfunctions as rfn
 from numpy.testing import assert_allclose, assert_approx_equal, assert_equal
+
+import sep
 
 # unicode_literals doesn't play well with numpy dtype field names
 
@@ -349,7 +350,7 @@ def test_masked_background():
 @pytest.mark.skipif(NO_FITS, reason="no FITS reader")
 def test_background_special():
     """
-    Test the special methods of `sep_pjw.Background`.
+    Test the special methods of `sep.Background`.
     """
 
     bkg = sep.Background(image_data, bw=64, bh=64, fw=3, fh=3)
@@ -367,7 +368,7 @@ def test_background_special():
 
 def test_background_boxsize():
     """
-    Test that `sep_pjw.Background` works when boxsize is same as image.
+    Test that `sep.Background` works when boxsize is same as image.
     """
 
     ny, nx = 100, 100
@@ -378,7 +379,7 @@ def test_background_boxsize():
 
 def test_background_rms():
     """
-    Test that `sep_pjw.Background.rms` at least works.
+    Test that `sep.Background.rms` at least works.
     """
 
     ny, nx = 1024, 1024
@@ -910,7 +911,7 @@ def test_mask_ellipse_alt():
 
 def test_byte_order_exception():
     """
-    Test that SEP-PJW will not run with non-native byte order.
+    Test that SEP will not run with non-native byte order.
 
     Test that error about byte order is raised with non-native
     byte order input array. This should happen for Background, extract,
@@ -948,7 +949,7 @@ def test_set_sub_object_limit():
 
 def test_long_error_msg():
     """
-    Test the error handling in SEP-PJW.
+    Test the error handling in SEP.
 
     Ensure that the error message is created successfully when
     there is an error detail.

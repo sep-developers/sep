@@ -156,7 +156,7 @@ jobs:
     needs: [build_wheels, build_sdist]
     environment:
       name: pypi
-      url: https://pypi.org/p/sep-pjw
+      url: https://pypi.org/p/sep
     permissions:
       id-token: write
 
