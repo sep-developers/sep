@@ -1179,6 +1179,25 @@ PIXTYPE get_mean_thresh(infostruct * info, pliststruct * pixel) {
   return (PIXTYPE)(thresh_accum / pix_accum);
 }
 
+/************************** get_mean_thresh **********************************/
+/*
+Compute an average threshold from all pixels in the cluster
+*/
+PIXTYPE get_mean_thresh(infostruct *info, pliststruct *pixel)
+{
+  pliststruct   *pixt;
+  int           pix_accum=0;
+  PIXTYPE       thresh_accum=0;
+
+  for (pixt=pixel+info->firstpix; pixt>=pixel;
+       pixt=pixel+PLIST(pixt,nextpix))
+    {
+      thresh_accum += PLISTPIX(pixt,thresh);
+      pix_accum++;
+    }
+
+  return thresh_accum / pix_accum;
+}
 
 /*****************************************************************************/
 /* sep_catalog manipulations */
