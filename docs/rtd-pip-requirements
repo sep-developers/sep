@@ -5,3 +5,4 @@ matplotlib
 fitsio
 numpydoc
 jupyter
+sphinx-astropy[confv2]

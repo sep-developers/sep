@@ -4,7 +4,7 @@ Aperture photometry
 There are four aperture functions available:
 
 ==================  =========================
-Function            Sums data within...
+Function                Sums data within...
 ==================  =========================
 `sep.sum_circle`    circle(s)
 `sep.sum_circann`   circular annulus/annuli
@@ -13,7 +13,9 @@ Function            Sums data within...
 ==================  =========================
 
 The follow examples demonstrate options for circular aperture
-photometry. The other functions behave similarly. ::
+photometry. The other functions behave similarly.
+
+.. code-block:: python
 
    # sum flux in circles of radius=3.0
    flux, fluxerr, flag = sep.sum_circle(data, objs['x'], objs['y'], 3.0)
@@ -35,10 +37,12 @@ flexibly and efficiently calculated, depending on the characteristics
 of your data. The presence of an ``err`` or ``var`` keyword indicates
 a per-pixel noise, while the presense of a ``gain`` keyword indicates
 that the Poisson uncertainty on the total sum should be included. Some
-illustrative examples::
+illustrative examples:
+
+.. code-block:: python
 
    # Specify a per-pixel "background" error and a gain. This is suitable
-   # when the data have been background subtracted. 
+   # when the data have been background subtracted.
    flux, fluxerr, flag = sep.sum_circle(data, objs['x'], objs['y'], 3.0,
                                         err=bkg.globalrms, gain=1.0)
 
@@ -73,10 +77,12 @@ noise in each pixel, :math:`F` is the sum in the aperture and
 :math:`g` is the gain. The last term is not added if ``gain`` is
 `None`.
 
-**Masking** 
+**Masking**
 
 Apply a mask (same shape as data). Pixels where the mask is True are
-"corrected" to the average value within the aperture. ::
+"corrected" to the average value within the aperture.
+
+.. code-block:: python
 
    flux, fluxerr, flag = sep.sum_circle(data, objs['x'], objs['y'], 3.0,
                                         mask=mask)
@@ -84,7 +90,10 @@ Apply a mask (same shape as data). Pixels where the mask is True are
 **Local background subtraction**
 
 The `~sep.sum_circle` and `~sep.sum_ellipse` functions have options
-for performing local background subtraction. For example, to subtract the background calculated in an annulus between 6 and 8 pixel radius::
+for performing local background subtraction. For example, to subtract the
+background calculated in an annulus between 6 and 8 pixel radius:
+
+.. code-block:: python
 
    flux, fluxerr, flag = sep.sum_circle(data, objs['x'], objs['y'], 3.0,
                                         mask=mask, bkgann=(6., 8.))
@@ -98,7 +107,9 @@ Equivalent of FLUX_AUTO (e.g., MAG_AUTO) in Source Extractor
 ------------------------------------------------------------
 
 This is a two-step process. First we calculate the Kron radius for each
-object, then we perform elliptical aperture photometry within that radius::
+object, then we perform elliptical aperture photometry within that radius:
+
+.. code-block:: python
 
    kronrad, krflag = sep.kron_radius(data, x, y, a, b, theta, 6.0)
    flux, fluxerr, flag = sep.sum_ellipse(data, x, y, a, b, theta, 2.5*kronrad,
@@ -110,7 +121,9 @@ This specific example is the equilvalent of setting ``PHOT_AUTOPARAMS
 ``sep.sum_ellipse``). The second Source Extractor parameter is a
 minimum diameter. To replicate Source Extractor behavior for non-zero
 values of the minimum diameter, one would put in logic to use circular
-aperture photometry if the Kron radius is too small. For example::
+aperture photometry if the Kron radius is too small. For example:
+
+.. code-block:: python
 
    r_min = 1.75  # minimum diameter = 3.5
    use_circle = kronrad * np.sqrt(a * b) < r_min
@@ -134,12 +147,16 @@ the circle containing the same flux as whatever ellipse Source
 Extractor used for ``FLUX_AUTO``.
 
 Given a previous calculation of ``flux`` as above, calculate the
-radius for a flux fraction of 0.5::
+radius for a flux fraction of 0.5:
+
+.. code-block:: python
 
     r, flag = sep.flux_radius(data, objs['x'], objs['y'], 6.*objs['a'], 0.5,
                               normflux=flux, subpix=5)
 
-And for multiple flux fractions::
+And for multiple flux fractions:
+
+.. code-block:: python
 
     r, flag = sep.flux_radius(data, objs['x'], objs['y'], 6.*objs['a'],
                               [0.5, 0.6], normflux=flux, subpix=5)
@@ -155,7 +172,9 @@ Extractor exactly, the right ``sig`` parameter (giving a description
 of the effective width) must be used for each object.  Source
 Extractor uses ``2.  / 2.35 * (half-light radius)`` where the
 half-light radius is calculated using ``flux_radius`` with a fraction
-of 0.5 and a normalizing flux of ``FLUX_AUTO``. The equivalent here is::
+of 0.5 and a normalizing flux of ``FLUX_AUTO``. The equivalent here is:
+
+.. code-block:: python
 
     sig = 2. / 2.35 * r  # r from sep.flux_radius() above, with fluxfrac = 0.5
     xwin, ywin, flag = sep.winpos(data, objs['x'], objs['y'], sig)
@@ -164,25 +183,42 @@ of 0.5 and a normalizing flux of ``FLUX_AUTO``. The equivalent here is::
 Segmentation-masked image measurements
 --------------------------------------
 
-SourceExtractor provides a mechanism for measuring the "AUTO" and "FLUX_RADIUS" parameters for a given object including a mask for neighboring sources.  In addition to the mask, setting the SourceExtractor parameter ``MASK_TYPE=CORRECT`` further fills the masked pixels of a given source with "good" pixel values reflected opposite of the masked pixels.  The ``SEP`` photometry and measurement functions provide an option for simple masking without reflection or subtracting neighbor flux.  
+SourceExtractor provides a mechanism for measuring the "AUTO" and
+"FLUX_RADIUS" parameters for a given object including a mask for
+neighboring sources. In addition to the mask, setting the SourceExtractor
+parameter ``MASK_TYPE=CORRECT`` further fills the masked pixels of a given
+source with "good" pixel values reflected opposite of the masked pixels.
+The ``SEP`` photometry and measurement functions provide an option for
+simple masking without reflection or subtracting neighbor flux.
 
-For example, using a segmentation array provided by ``sep.extract``, we can compute the masked ``flux_radius`` that could otherwise be artificially large due to flux from nearby sources::
+For example, using a segmentation array provided by ``sep.extract``, we
+can compute the masked ``flux_radius`` that could otherwise be
+artificially large due to flux from nearby sources:
+
+.. code-block:: python
 
     # list of object id numbers that correspond to the segments
     seg_id = np.arange(1, len(objs)+1, dtype=np.int32)
-    
-    r, flag = sep.flux_radius(data, objs['x'], objs['y'], 6.*objs['a'], 0.5,
-                              seg_id=seg_id, seg=seg, 
+
+    r, flag = sep.flux_radius(data, objs['x'], objs['y'], 6.*objs['a'],
+                              0.5, seg_id=seg_id, seg=seg,
                               normflux=flux, subpix=5)
 
-To enforce that a given measurement **only** includes pixels within a segment, provide negative values in the ``seg_id`` list.  Otherwise the mask for a given object will be pixels with ``(seg == 0) | (seg_id == id_i)``.
+To enforce that a given measurement **only** includes pixels within a
+segment, provide negative values in the ``seg_id`` list.  Otherwise the
+mask for a given object will be pixels with
+``(seg == 0) | (seg_id == id_i)``.
 
-The following functions include the segmentation masking: ``sum_circle``, ``sum_circann``, ``sum_ellipse``, ``sum_ellipann``, ``flux_radius`` , and ``kron_radius`` (``winpos`` **currently does not**). 
+The following functions include the segmentation masking:
+``sum_circle``, ``sum_circann``, ``sum_ellipse``, ``sum_ellipann``,
+``flux_radius`` , and ``kron_radius`` (``winpos`` **currently does not**).
 
 Masking image regions
 ---------------------
 
-Create a boolean array with elliptical regions set to True::
+Create a boolean array with elliptical regions set to True:
+
+.. code-block:: python
 
    mask = np.zeros(data.shape, dtype=np.bool)
    sep.mask_ellipse(mask, objs['x'], objs['y'], obs['a'], objs['b'],

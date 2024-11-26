@@ -4,7 +4,11 @@ Matched Filter (Convolution)
 For source detection, SEP supports using a matched filter, which can
 give the optimal detection signal-to-noise for objects with some known
 shape. This is controlled using the ``filter_kernel`` keyword in
-`sep.extract`. For example::
+`sep.extract`. For example:
+
+.. code-block:: python
+
+    import sep
 
     kernel = np.array([[1., 2., 3., 2., 1.],
                        [2., 3., 5., 3., 2.],
@@ -14,7 +18,7 @@ shape. This is controlled using the ``filter_kernel`` keyword in
     objects = sep.extract(data, thresh, filter_kernel=kernel)
 
 If ``filter_kernel`` is not specified, a default 3-by-3 kernel
-is used. To disable filtering entirely, specify ``filter_kernel=None``. 
+is used. To disable filtering entirely, specify ``filter_kernel=None``.
 
 What array should be used for ``filter_kernel``? It should be
 approximately the shape of the objects you are trying to detect. For
@@ -40,7 +44,9 @@ each pixel. This is not available in Source Extractor. Some benefits
 of this method are that detector sensitivity can be taken into account
 and edge effects are handled gracefully. For example, suppose we have
 an image with noise that is higher in one region than another. This
-can often occur when coadding images::
+can often occur when coadding images:
+
+.. code-block:: python
 
     # create a small image with higher noise in the upper left
     n = 16
@@ -81,10 +87,10 @@ the object:
 Derivation of the matched filter formula
 ----------------------------------------
 
-Assume that we have an image containing a single point source. This produces a
-signal with PSF :math:`S_i` and noise :math:`N_i` at each pixel indexed by
-:math:`i`. Then the measured image data :math:`D_i` (i.e. our pixel values) is
-given by:
+Assume that we have an image containing a single point source. This
+produces a signal with PSF :math:`S_i` and noise :math:`N_i` at each pixel
+indexed by :math:`i`. Then the measured image data :math:`D_i` (i.e. our
+pixel values) is given by:
 
 .. math::
     D_i = S_i + N_i
@@ -95,9 +101,9 @@ output :math:`Y`:
 .. math::
     Y = \sum_i T_i D_i = T^T D
 
-We use matrix notation from here on and drop the explicit sums. Our objective
-is to find the transformation :math:`T_i` which maximizes the signal-to-noise
-ratio :math:`SNR`.
+We use matrix notation from here on and drop the explicit sums. Our
+objective is to find the transformation :math:`T_i` which maximizes the
+signal-to-noise ratio :math:`SNR`.
 
 .. math::
     SNR^2 = \frac{(T^T S)^2}{E[(T^T N)^2]}
@@ -105,14 +111,16 @@ ratio :math:`SNR`.
 We can expand the denominator as:
 
 .. math::
-    E[(T^T N)^2] = E[(T^T N)(N^T T)] = T^T \cdot E[N N^T] \cdot T = T^T C T
+    E[(T^T N)^2] = E[(T^T N)(N^T T)] = T^T \cdot E[N N^T] \cdot T
+    = T^T C T
 
-Where :math:`C_{ik}` is the covariance of the noise between pixels :math:`i`
-and :math:`k`. Now using the Cauchy-Schwarz inequality on the numerator:
+Where :math:`C_{ik}` is the covariance of the noise between pixels
+:math:`i` and :math:`k`. Now using the Cauchy-Schwarz inequality on the
+numerator:
 
 .. math::
-    (T^T S)^2 = (T^T C^{1/2} C^{-1/2} S)^2 \le (T^T C^{1/2})^2 (C^{-1/2} S)^2 =
-    (T^T C T) (S^T C^{-1} S)
+    (T^T S)^2 = (T^T C^{1/2} C^{-1/2} S)^2 \le (T^T C^{1/2})^2
+    (C^{-1/2} S)^2 = (T^T C T) (S^T C^{-1} S)
 
 since :math:`C^T = C`. The signal-to-noise ratio is therefore bounded by:
 
@@ -121,15 +129,16 @@ since :math:`C^T = C`. The signal-to-noise ratio is therefore bounded by:
     &SNR^2 \le S^T C^{-1} S
 
 Choosing :math:`T = \alpha C^{-1} S` where :math:`\alpha` is an arbitrary
-normalization constant, we get equality. Hence this choise of :math:`T` is the
-optimal linear tranformation. We normalize this linear transformation so that
-if there is no signal and only noise, we get an expected signal-to-noise ratio
-of 1. With this definition, the output :math:`SNR` represents the number of
-standard deviations above the background. This gives:
+normalization constant, we get equality. Hence this choise of :math:`T` is
+the optimal linear tranformation. We normalize this linear transformation
+so that if there is no signal and only noise, we get an expected
+signal-to-noise ratio of 1. With this definition, the output :math:`SNR`
+represents the number of standard deviations above the background. This
+gives:
 
 .. math::
-    &E[(T^T N)^2] = T^T C T = \alpha^2 S^T C^{-1} C C^{-1} S = \alpha^2 S^T
-    C^{-1} S = 1 \\ 
+    &E[(T^T N)^2] = T^T C T = \alpha^2 S^T C^{-1} C C^{-1} S = \alpha^2
+    S^T C^{-1} S = 1 \\
     &\alpha = \frac{1}{\sqrt{S^T C^{-1} S}}
 
 Putting everything together, our normalized linear transformation is:
@@ -137,7 +146,8 @@ Putting everything together, our normalized linear transformation is:
 .. math::
     T = \frac{C^{-1} S}{\sqrt{S^T C^{-1} S}}
 
-And the optimal signal-to-noise is given in terms of the known variables as:
+And the optimal signal-to-noise is given in terms of the known variables
+as:
 
 .. math::
     SNR = \frac{S^T C^{-1} D}{\sqrt{S^T C^{-1} S}}

@@ -1,173 +1,79 @@
-v1.2.1 (1 June 2022)
-====================
+v1.3.7 (8 November 2024)
+========================
 
-* Same as v1.2.0 but with new wheels for Python 3.10 and AArch64.
+* Test against Python 3.13.
+* Update the Makefile to support Semantic Versioning from git tags.
+* Update the C libraries to allow for passing the version as a compiler
+  flag.
+* Update `setup.py` to pass the SCM version to the Cython compiler.
+* Include C tests in the Tox suite (for linux and macos only).
+* Document any and all changes to the C API since forking.
+* Restructure changelog documentation.
 
-v1.2.0 (1 May 2021)
-===================
-
-* Changed `numpy.float` and `numpy.int` types for deprecations in numpy 1.20 (#96).
-
-* Make it possible to safely invoke C library from multiple threads on
-  independent inputs.
-
-  Global config functions such as `set_sub_object_limit()`
-  and `set_extract_pixstack()` still configure global params
-  (once for all threads), while other functions will retain their data
-  in thread-local storages, so they can be invoked from multiple threads as
-  long as they work on independent structures.
-
-  Library compilation will now require a C11 compatible compiler, which should
-  be nowadays available on all supported platforms.
-
-* Mark some pointer parameters with `const *`. This is a backward-compatible
-  change, but makes it easier to extract constants that can be safely shared
-  between multiple threads and/or invocations.
-
-v1.1.1 (6 January 2021)
+v1.3.6 (7 October 2024)
 =======================
 
-* Same as v1.1.0 but with wheels built and uploaded to PyPI. Please report if you
-  have problems with wheels.
+* Fix wrong int type in Windows
+  ([#2](https://github.com/PJ-Watson/sep-pjw/issues/2), thanks to
+  @acenko for pointing this out).
+* Update tests to run on multiple operating systems.
 
-
-v1.1.0 (3 January 2021)
-=======================
-
-* Add segmentation masking to the photometry and kron/auto functions (#69).
-
-* Add functions `sep.set_sub_object_limit(limit)` and `sep.get_sub_object_limit()`
-  for modifying and retrieving the sub-object deblending limit. Previously this
-  parameter was hard-coded to 1024. 1024 is now the default value.
-
-* This and future versions are now Python 3 only. Python 2 is no longer
-  supported.
-
-* Modernize setup.py with pyproject.toml
-
-
-v1.0.3 (12 June 2018)
+v1.3.5 (12 June 2024)
 =====================
 
-* Fix double-free bug in sep_extract() arising when an error status occurs
-  and convolution is on. (#56)
+* Small fixes and updates to ensure compatibility with NumPy 2.0.
 
-* Work around numpy dependency in setup. (#59)
+v1.3.4 (21 February 2024)
+========================
 
+* Include .clang-format as a pre-commit hook, to ensure consistent code
+  style (improved readability, easier maintenance).
+* Fixed `make test` to account for the changes in
+  [v1.3.0](https://github.com/PJ-Watson/sep-pjw/releases/tag/v1.3.0).
+* All header files include the correct definitions.
 
-v1.0.2 (19 September 2017)
-==========================
+v1.3.3 (7 February 2024)
+========================
 
-* Fix makefile so that `make install` works on OS X for the C library.
-  Python module and C code are unchanged.
+* Add changelog to documentation.
+* Add tests for re-running with seg map.
+* Fix array boundary bugs when re-running with seg map.
+* Fix bug with precision loss when calculating threshold.
+* Improve error handling when object pixels exceed pix stack.
 
+v1.3.2 (5 February 2024)
+========================
 
-v1.0.1 (10 July 2017)
-=====================
+* Move documentation to new location, fix package names and imports.
+* Add wheels for Python 3.11/3.12.
+* Fix C compilation errors on windows (VLAs).
+* Publish updated version to PyPI under new name.
 
-* Fix bug when using masked filter and noise array where objects with member
-  pixels at end of image (maximum y coordinate) were erroneously missed.
+v1.3.1 (31 January 2024)
+========================
 
+* Formatting changes (follow [black](https://github.com/psf/black)
+  formatting style).
+* Fix `bench.py` and `test.py`, removing deprecated functions.
+* Move metadata into `pyproject.toml`.
+* Add pre-commit hooks for code and docstring validation.
+* Change to dynamic versioning (git tag/commit based).
 
-v1.0.0 (30 September 2016)
-==========================
+v1.3.0 (1 December 2023)
+========================
 
-* Remove features deprecated in previous versions.
+* The `segmentation_map` argument of `sep.extract()` will now accept
+  either an array or boolean. If an existing segmentation map is passed,
+  the object detection stage is skipped, and sources will be individually
+  analysed according to the provided map. This change is
+  backwards-compatible with respect to the Python module.
 
-* Fix bug in Background.rms() giving nonsensical results.
+  Please note that as no deblending is performed, the calculated
+  thresholds (and any dependent parameters) may not be the same as
+  originally derived.
 
-v0.6.0 (25 August 2016)
-=======================
-
-* New, more coherent C API. This change should be transparent to users
-  of the Python module.
-
-* Add variance uncertainty parameters `errx2`, `erry2` and `errxy` to
-  output of `sep.extract()`.
-
-* Add a minimum sigma to `sep.winpos()` to match Source Extractor
-  behavior.
-
-* Fix use of boolean masks in `sep.kron_radius()`. Formerly, using a
-  boolean mask resulted in nonsense results.
-
-* Fix segfault in `Background.back()` when box size is same as image size.
-
-* Fix bug in creating long error messages on Python 3.
-
-v0.5.2 (4 January 2016)
-=======================
-
-Adds OS X and Windows support.
-
-v0.5.1 (30 November 2015)
-=========================
-
-Bugfix release for problem in setup.py in packaged code.
-
-v0.5.0 (22 November 2015)
-=========================
-
-* `sep.extract()` now uses a more correct matched filter algorithm in the
-  presence of a noise array, rather than simple convolution. The `conv`
-  keyword has been changed to `filter_kernel` to reflect this, and a
-  `filter_type` keyword has been added to allow selecting the old behavior
-  of simple convolution.
-
-* `sep.extract()` now accepts a `mask` keyword argument.
-
-* `sep.extract()` can now return a segmentation map.
-
-* Special methods added to allow `data - bkg` and `np.array(bkg)` where
-  `bkg` is a Background object.
-
-v0.4.1 (10 November 2015)
-=========================
-
-Bugfix release, fixing error estimate in `sep.sum_circle` and
-`sep.sum_ellipse` when `bkgann` keyword argument is given.
-
-v0.4.0 (1 June 2015)
-====================
-
-* New `sep.winpos()` function.
-
-v0.3.0 (23 February 2015)
-=========================
-
-* New `sep.flux_radius()` function.
-
-v0.2.0 (13 December 2014)
-=========================
-
-* **[breaking change]** `theta` field in `extract()` output is now in
-  radians rather than degrees, for compatibility with new ellipse
-  aperture functions.
-
-* **[deprecation]** Change `mask_ellipse()` parameters from ellipse
-  coefficients to ellipse axes and position angle, to match aperture
-  functions. (Old behavior still works as well.)
-
-* **[deprecation]** Change `apercirc()` to `sum_circle()`, to match
-  new aperture functions. (Old name, `apercirc()`, still works.)
-
-* Add `sum_circann()`, `sum_ellipse()`, `sum_ellipann()`,
-  `kron_radius()`, `ellipse_coeffs()`, `ellipse_axes()` functions.
-
-* Exact mode aperture photometery in all functions, with `subpix=0`.
-
-* Enable variable thresholding in `sep.extract`. [#11]
-
-* Fix bug in background masking. This bug impacted masking in all
-  functions that used masking. Also affected C library.
-
-* More detail in error messages coming from within the C library.
-  More helpful error message for non-native byteorder arrays.
-
-* Add ability to change pixel stack size used in `extract()`, with
-  `set_extract_pixstack()` function
-
-v0.1.0 (11 August 2014)
-=======================
-
-This is the first official release.
+* Use 64-bit integers throughout, to fix memory addressing with large
+  arrays
+  ([#122](https://github.com/kbarbary/sep/issues/122 "Original issue"),
+  inspired by [Gabe Brammer's fork](https://github.com/gbrammer/sep)
+  with additional fixes).

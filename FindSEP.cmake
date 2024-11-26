@@ -48,5 +48,5 @@ else (SEP_LIBRARIES)
   endif (SEP_FOUND)
 
   mark_as_advanced(SEP_LIBRARIES)
-  
+
 endif (SEP_LIBRARIES)

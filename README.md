@@ -1,14 +1,36 @@
 SEP
 ===
 
-Python and C library for Source Extraction and Photometry
+Python and C library for Source Extraction and Photometry, originally
+developed at [kbarbary/sep](https://github.com/kbarbary/sep) and later
+maintained at [PJ-Watson/sep-pjw](https://github.com/PJ-Watson/sep-pjw).
 
-![Build Status](https://github.com/kbarbary/sep/workflows/Python%20package/badge.svg)
-[![PyPI](https://img.shields.io/pypi/v/sep.svg)](https://pypi.python.org/pypi/sep)
+[![PyPI](https://img.shields.io/pypi/v/sep?label=PyPI)](https://pypi.python.org/pypi/sep)
+[![PyPI - Downloads](https://img.shields.io/pypi/dm/sep?label=PyPI%20Downloads)
+](https://pypi.python.org/pypi/sep)
+![Build Status](https://github.com/sep-developers/sep/workflows/CI/badge.svg)
+[![Documentation Status](https://readthedocs.org/projects/sep-pjw/badge/?version=latest)](https://sep-pjw.readthedocs.io/en/latest/?badge=latest)
 [![JOSS](http://joss.theoj.org/papers/10.21105/joss.00058/status.svg)](http://dx.doi.org/10.21105/joss.00058)
 
-*"... [it's] an SEP: Somebody Else's Problem."  
+*"... [it's] an SEP: Somebody Else's Problem."
 "Oh, good. I can relax then."*
+
+SEP, SEP-PJW, and Package Names
+-------------------------------
+
+`sep` was originally released by Kyle Barbary, at
+[kbarbary/sep](https://github.com/kbarbary/sep) (``sep<=1.2.1``). For a
+brief period, the package was maintained by Peter Watson, under the
+`sep-pjw` package name, at
+[PJ-Watson/sep-pjw](https://github.com/PJ-Watson/sep-pjw) and
+[PyPI/sep-pjw](https://pypi.org/project/sep-pjw/)
+(``1.3.0<=sep-pjw<=1.3.8``). Both of these repositories will be archived,
+and future development will take place at
+[sep-developers/sep](<https://github.com/sep-developers/sep>)
+(``sep>=1.4.0``). Note that there may be some incompatibilities between
+``sep==1.2.1`` and ``sep==1.4.0`` when using the C-API directly (to fix
+an indexing bug arising with large arrays) - all changes are documented
+[here](https://sep-pjw.readthedocs.io/en/latest/changelogs/changes_to_c_api.html).
 
 
 About
@@ -43,19 +65,19 @@ instructions.
 Python
 ------
 
-**Documentation:** http://sep.readthedocs.io
+**Documentation:** http://sep-pjw.readthedocs.io
 
 **Requirements:**
 
-- Python 3.5+
-- numpy
+- Python 3.9+
+- numpy 1.23+
 
 **Install release version:**
 
 SEP can be installed with [pip](https://pip.pypa.io):
 
 ```
-pip install sep
+python -m pip install sep
 ```
 
 If you get an error about permissions, you are probably using your
@@ -64,7 +86,7 @@ install"](https://pip.pypa.io/en/latest/user_guide/#user-installs)
 option to install sep into your user directory:
 
 ```
-pip install --user sep
+python -m pip install --user sep
 ```
 
 Do **not** install sep or other third-party Python packages using
@@ -77,7 +99,7 @@ Building the development version (from github) requires Cython.
 Build and install in the usual place:
 
 ```
-./setup.py install
+python -m pip install --editable .
 ```
 
 **Run tests:** Tests require the [pytest](http://pytest.org) Python
@@ -133,14 +155,14 @@ and header file in `/path/to/prefix/include`. The default prefix is
 Contributing
 ------------
 
-- Report a bug or documentation issue: http://github.com/kbarbary/sep/issues
-- Ask (or answer) a question: https://github.com/kbarbary/sep/discussions/categories/q-a
+- Report a bug or documentation issue: http://github.com/sep-developers/issues
+- Ask (or answer) a question: https://github.com/sep-developers/sep/discussions/categories/q-a
 
 Development of SEP takes place on GitHub at
-http://github.com/kbarbary/sep.  Contributions of bug fixes,
+[sep-developers/sep](http://github.com/sep-developers/sep).  Contributions of bug fixes,
 documentation improvements and minor feature additions are welcome via
 GitHub pull requests. For major features, it is best to discuss the change first
-via [GitHub Discussions](https://github.com/kbarbary/sep/discussions/).
+via [GitHub Discussions](https://github.com/sep-developers/sep/discussions/).
 
 
 Citation
@@ -179,7 +201,7 @@ executable built on top of the library. In Source Extractor, background
 estimation, object detection and photometry are deeply integrated into the
 Source Extractor executable. Many changes to the code were necessary in
 order to put the functionality in stand-alone C functions. It's too much
-to ask of the Source Extractor developer to rewrite large parts of the 
+to ask of the Source Extractor developer to rewrite large parts of the
 core of the Source Extractor program with little gain for the executable.
 
 **What sort of changes?**
@@ -260,4 +282,4 @@ the data.
 
 **I have more questions!**
 
-Open a discussion on the [GitHub Discussions page](https://github.com/kbarbary/sep/discussions/categories/q-a)!
+Open a discussion on the [GitHub Discussions page](https://github.com/sep-developers/sep/discussions/categories/q-a)!

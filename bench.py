@@ -1,14 +1,20 @@
 #!/usr/bin/env python
+
+"""Benchmarking SEP against equivalent photutils functions."""
+
 from __future__ import print_function
 
-from os.path import join
 import time
+from os.path import join
+
 import numpy as np
+
 import sep
 
 # try to import photutils for comparison timing
 try:
     import photutils
+
     HAVE_PHOTUTILS = True
 except ImportError:
     HAVE_PHOTUTILS = False
@@ -16,11 +22,13 @@ except ImportError:
 # Try to import any FITS reader
 try:
     from fitsio import read as getdata
+
     HAVE_FITS = True
     NEED_BYTESWAP = False
 except ImportError:
     try:
         from astropy.io.fits import getdata
+
         HAVE_FITS = True
     except ImportError:
         HAVE_FITS = False
@@ -37,47 +45,53 @@ if HAVE_FITS:
     t0 = time.time()
     bkg = sep.Background(data)  # estimate background
     t1 = time.time()
-    print("measure background: {0:6.2f} ms".format((t1-t0) * 1.e3))
+    print("measure background: {0:6.2f} ms".format((t1 - t0) * 1.0e3))
 
     t0 = time.time()
     bkg.subfrom(data)  # subtract it
     t1 = time.time()
-    print("subtract background: {0:6.2f} ms".format((t1-t0) * 1.e3))
+    print("subtract background: {0:6.2f} ms".format((t1 - t0) * 1.0e3))
 
     t0 = time.time()
     backarr = bkg.back(dtype=np.float64)  # background
     t1 = time.time()
-    print("background array: {0:6.2f} ms".format((t1-t0) * 1.e3))
+    print("background array: {0:6.2f} ms".format((t1 - t0) * 1.0e3))
 
     t0 = time.time()
     rmsarr = bkg.rms()
     t1 = time.time()
-    print("rms array: {0:6.2f} ms".format((t1-t0) * 1.e3))
+    print("rms array: {0:6.2f} ms".format((t1 - t0) * 1.0e3))
 
     t0 = time.time()
     objects = sep.extract(data, 1.5 * bkg.globalrms)
     t1 = time.time()
-    print("extract: {0:6.2f} ms  [{1:d} objects]"
-          .format((t1-t0) * 1.e3, len(objects)))
+    print(
+        "extract: {0:6.2f} ms  [{1:d} objects]".format((t1 - t0) * 1.0e3, len(objects))
+    )
 
-#--------------------------------------------------------------------------
+# --------------------------------------------------------------------------
 # Background subtraction
 
 print("")
 if HAVE_PHOTUTILS:
     print("sep version:      ", sep.__version__)
     print("photutils version:", photutils.__version__)
-    print("""
+    print(
+        """
 | test                    | sep             | photutils       | ratio  |
-|-------------------------|-----------------|-----------------|--------|""")
-    blankline = \
-"|                         |                 |                 |        |"
+|-------------------------|-----------------|-----------------|--------|"""
+    )
+    blankline = (
+        "|                         |                 |                 |        |"
+    )
 
 else:
     print("sep version: ", sep.__version__)
-    print("""
+    print(
+        """
 | test                    | sep             |
-|-------------------------|-----------------|""")
+|-------------------------|-----------------|"""
+    )
     blankline = "|                         |                 |"
 
 nloop = 50
@@ -90,23 +104,27 @@ for ntile in [4]:
     for _ in range(0, nloop):
         bkg = sep.Background(data)
     t1 = time.time()
-    t_sep = (t1-t0) * 1.e3 / nloop
+    t_sep = (t1 - t0) * 1.0e3 / nloop
     line += "      {0:7.2f} ms |".format(t_sep)
 
     if HAVE_PHOTUTILS:
         t0 = time.time()
         for _ in range(0, nloop):
             try:
-                bkg = photutils.Background(data, (64, 64))  # estimate background
+                bkg = photutils.background.Background(
+                    data, (64, 64)
+                )  # estimate background
             except AttributeError:
-                bkg = photutils.background.Background2D(data, (64, 64))  # estimate background
+                bkg = photutils.background.Background2D(
+                    data, (64, 64)
+                )  # estimate background
         t1 = time.time()
-        t_pu = (t1-t0) * 1.e3 / nloop
-        line += "      {0:7.2f} ms | {1:6.2f} |".format(t_pu, t_pu/t_sep)
+        t_pu = (t1 - t0) * 1.0e3 / nloop
+        line += "      {0:7.2f} ms | {1:6.2f} |".format(t_pu, t_pu / t_sep)
 
     print(line)
 
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Circular aperture photometry benchmarks
 
 if not CONDENSED:
@@ -118,16 +136,19 @@ if not CONDENSED:
 
 naper = 1000
 data = np.ones((2000, 2000), dtype=np.float32)
-x = np.random.uniform(200., 1800., naper)
-y = np.random.uniform(200., 1800., naper)
+x = np.random.uniform(200.0, 1800.0, naper)
+y = np.random.uniform(200.0, 1800.0, naper)
 
 if CONDENSED:
-    r_list = [5.]
+    r_list = [5.0]
     subpix_list = [(5, "subpixel", "subpix=5"), (0, "exact", "exact")]
 else:
-    r_list = [3., 5., 10., 20.]
-    subpix_list = [(1, "center", "subpix=1"), (5, "subpixel", "subpix=5"),
-                   (0, "exact", "exact")]
+    r_list = [3.0, 5.0, 10.0, 20.0]
+    subpix_list = [
+        (1, "center", "subpix=1"),
+        (5, "subpixel", "subpix=5"),
+        (0, "exact", "exact"),
+    ]
 
 for r in r_list:
     for subpix, method, label in subpix_list:
@@ -138,27 +159,28 @@ for r in r_list:
         for _ in range(0, nloop):
             flux, fluxerr, flag = sep.sum_circle(data, x, y, r, subpix=subpix)
         t1 = time.time()
-        t_sep = (t1-t0) * 1.e6 / naper / nloop
+        t_sep = (t1 - t0) * 1.0e6 / naper / nloop
         line += " {0:7.2f} us/aper |".format(t_sep)
 
         if HAVE_PHOTUTILS:
-            apertures = photutils.aperture.CircularAperture(np.array((x, y)).T, r)
+            apertures = photutils.aperture.CircularAperture(np.column_stack((x, y)), r)
             t0 = time.time()
             for _ in range(0, nloop):
                 res = photutils.aperture.aperture_photometry(
-                    data, apertures, method=method, subpixels=subpix)
+                    data, apertures, method=method, subpixels=subpix
+                )
             t1 = time.time()
-            t_pu = (t1-t0) * 1.e6 / naper / nloop
-            line += " {0:7.2f} us/aper | {1:6.2f} |".format(t_pu, t_pu/t_sep)
+            t_pu = (t1 - t0) * 1.0e6 / naper / nloop
+            line += " {0:7.2f} us/aper | {1:6.2f} |".format(t_pu, t_pu / t_sep)
 
         print(line)
 
 if not CONDENSED:
     print(blankline)
 
-a = 1.
-b = 1.
-theta = np.pi/4.
+a = 1.0
+b = 1.0
+theta = np.pi / 4.0
 
 for r in r_list:
     for subpix, method, label in subpix_list:
@@ -166,20 +188,24 @@ for r in r_list:
 
         t0 = time.time()
         for _ in range(0, nloop):
-            flux, fluxerr, flag = sep.sum_ellipse(data, x, y, a, b, theta, r,
-                                                subpix=subpix)
+            flux, fluxerr, flag = sep.sum_ellipse(
+                data, x, y, a, b, theta, r, subpix=subpix
+            )
         t1 = time.time()
-        t_sep = (t1-t0) * 1.e6 / naper / nloop
+        t_sep = (t1 - t0) * 1.0e6 / naper / nloop
         line += " {0:7.2f} us/aper |".format(t_sep)
 
         if HAVE_PHOTUTILS:
-            apertures = photutils.aperture.EllipticalAperture(np.array((x, y)).T, a*r, b*r, theta)
+            apertures = photutils.aperture.EllipticalAperture(
+                np.column_stack((x, y)), a * r, b * r, theta
+            )
             t0 = time.time()
             for _ in range(0, nloop):
                 res = photutils.aperture.aperture_photometry(
-                    data, apertures, method=method, subpixels=subpix)
+                    data, apertures, method=method, subpixels=subpix
+                )
             t1 = time.time()
-            t_pu = (t1-t0) * 1.e6 / naper / nloop
-            line += " {0:7.2f} us/aper | {1:6.2f} |".format(t_pu, t_pu/t_sep)
+            t_pu = (t1 - t0) * 1.0e6 / naper / nloop
+            line += " {0:7.2f} us/aper | {1:6.2f} |".format(t_pu, t_pu / t_sep)
 
         print(line)

@@ -43,10 +43,28 @@ instructions.
 
 - Optimized matched filter for variable noise in source extraction.
 - Circular annulus and elliptical annulus aperture photometry functions.
-- Local background subtraction in shape consistent with aperture in aperture
-  photometry functions.
+- Local background subtraction in shape consistent with aperture in
+  aperture photometry functions.
 - Exact pixel overlap mode in all aperture photometry functions.
 - Masking of elliptical regions on images.
+
+
+SEP, SEP-PJW, and Package Names
+...............................
+
+``sep`` was originally released by Kyle Barbary, at
+`kbarbary/sep <https://github.com/kbarbary/sep>`_ (``sep<=1.2.1``). For a
+brief period, the package was maintained by Peter Watson, under the
+``sep-pjw`` package name, at
+`PJ-Watson/sep-pjw <https://github.com/PJ-Watson/sep-pjw>`_ and
+`PyPI/sep-pjw <https://pypi.org/project/sep-pjw/>`_
+(``1.3.0<=sep-pjw<=1.3.8``). Both of these repositories will be archived,
+and future development will take place at
+`sep-developers/sep <https://github.com/sep-developers/sep>`_
+(``sep>=1.4.0``).
+Note that there may be some incompatibilities between ``sep==1.2.1`` and
+``sep==1.4.0`` when using the C-API directly -- the changes are documented
+:doc:`here <changelogs/changes_to_c_api>`.
 
 
 Installation
@@ -63,20 +81,20 @@ SEP can be installed with conda from the ``conda-forge`` channel::
 with pip
 ........
 
-SEP can also be installed with `pip <https://pip.pypa.io>`_. After ensuring
-that numpy is installed, run ::
+SEP can also be installed with `pip <https://pip.pypa.io>`_. After
+ensuring that numpy is installed, run ::
 
-    pip install sep
+    python -m pip install sep
 
 If you get an error about permissions, you are probably using your
 system Python. In this case, I recommend using `pip's "user install"
 <https://pip.pypa.io/en/latest/user_guide/#user-installs>`_ option to
 install sep into your user directory ::
 
-    pip install --user sep
+    python -m pip install --user sep
 
-Do **not** install sep or other third-party Python packages using ``sudo``
-unless you are fully aware of the risks.
+Do **not** install ``sep`` or other third-party Python packages using
+``sudo`` unless you are fully aware of the risks.
 
 
 Usage Guide
@@ -88,6 +106,7 @@ Usage Guide
    tutorial
    filter
    apertures
+   changelogs/changelog
 
 .. toctree::
    :hidden:
@@ -100,10 +119,11 @@ For complete API documentation, see :doc:`reference`.
 Contributing
 ------------
 
-Report a bug or documentation issue: http://github.com/kbarbary/sep/issues
+Report a bug or documentation issue:
+http://github.com/sep-developers/sep/issues
 
-Development of SEP takes place on GitHub at
-http://github.com/kbarbary/sep.  Contributions of bug fixes,
+Development of ``sep`` takes place on GitHub at
+http://github.com/sep-developers/sep.  Contributions of bug fixes,
 documentation improvements and minor feature additions are welcome via
 GitHub pull requests. For major features, it is best to open an issue
 discussing the change first.

@@ -6,7 +6,7 @@ Reference/API
 
 .. autosummary::
    :toctree: api
-   
+
    sep.Background
    sep.extract
 
@@ -14,7 +14,7 @@ Reference/API
 
 .. autosummary::
    :toctree: api
-   
+
    sep.sum_circle
    sep.sum_circann
    sep.sum_ellipse

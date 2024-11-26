@@ -1,3 +1,93 @@
 [build-system]
-requires = ["setuptools", "wheel", "oldest-supported-numpy", "Cython"]
+requires = [
+    "setuptools>=61.0",
+    "wheel",
+    "numpy>=2.0.0rc2",
+    "Cython",
+    "setuptools_scm>=8.0",
+]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "sep"
+dynamic = ["version"]
+authors = [
+  { name="Emmanuel Bertin"},
+  { name="Kyle Barbary"},
+  { name="Kyle Boone"},
+  { name="Thomas Robitaille"},
+  { name="Matt Craig"},
+  { name="Curtis McCully"},
+  { name="Evert Rol"},
+  { name="Joe Lyman"},
+  { name="Michael Wuertenberger"},
+  { name="Ingvar Stepanyan"},
+  { name="Gabe Brammer"},
+  { name="Peter Watson"},
+]
+maintainers = [
+  { name="Peter Watson", email="peter.watson+sep@inaf.it" },
+]
+description="Astronomical source extraction and photometry library"
+readme = "README.md"
+license = { text =  "LGPLv3+" }
+classifiers=[
+    "Development Status :: 5 - Production/Stable",
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)",
+    "Topic :: Scientific/Engineering :: Astronomy",
+    "Intended Audience :: Science/Research",
+]
+requires-python = ">=3.9"
+dependencies = [
+    "numpy>=1.23.5"
+]
+
+[project.optional-dependencies]
+docs = [
+    "sphinx-copybutton>=0.5",
+    "sphinx>=7.2",
+    "numpydoc>=1.6",
+    "matplotlib>=3.6",
+    "sphinx-astropy[confv2]>=1.9.1",
+    "nbsphinx>=0.9.3",
+    "pandoc>=2.3",
+    "fitsio>=1.2.1",
+    "jupyter",
+    "myst-parser>=2.0.0",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/sep-developers/sep"
+"Bug Tracker" = "https://github.com/sep-developers/sep/issues"
+"Documentation" = "http://sep-pjw.readthedocs.org"
+
+[tool.setuptools_scm]
+version_file = "src/_version.py"
+
+[tool.black]
+line-length = 88
+target-version = ['py312']
+extend-exclude = '(.*.txt|.*.md|.*.toml|.*.odg)'
+preview = true
+
+[tool.isort]
+profile = "black"
+
+[tool.numpydoc_validation]
+checks = [
+    "all",   # report on all checks, except the below
+    "EX01",
+    "SA01",
+    "ES01",
+]
+exclude = [  # don't report on objects that match any of these regex
+    '\.undocumented_method$',
+    '\.__repr__$',
+    '\._.*$',  # Ignore anything that's private (e.g., starts with _)
+]
+override_SS05 = [  # override SS05 to allow docstrings starting with these words
+    '^Process ',
+    '^Assess ',
+    '^Access ',
+]

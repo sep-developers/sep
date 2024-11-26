@@ -44,7 +44,7 @@ sep.c
 
 # PyCharm
 .idea
-.project 
+.project
 
 # Eclipse
 .pydevproject
@@ -54,3 +54,6 @@ sep.c
 
 # tox
 .tox
+
+# version
+*_version.py

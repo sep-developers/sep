@@ -1,0 +1,34 @@
+exclude: "^data/"
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+    -   id: trailing-whitespace
+    -   id: end-of-file-fixer
+    -   id: check-yaml
+    -   id: check-added-large-files
+-   repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+    -   id: isort
+        name: isort (python)
+-   repo: https://github.com/psf/black
+    rev: 24.10.0
+    hooks:
+    -   id: black
+        args: [--preview]
+-   repo: https://github.com/numpy/numpydoc
+    rev: v1.8.0
+    hooks:
+    -   id: numpydoc-validation
+-   repo: https://github.com/sphinx-contrib/sphinx-lint
+    rev: v1.0.0
+    hooks:
+    -   id: sphinx-lint
+        args: [--enable=all, --disable=default-role, --max-line-length=75, -v]
+        files: ^docs\/|^.*\.(rst$|md$)
+-   repo: https://github.com/pre-commit/mirrors-clang-format
+    rev: v19.1.4
+    hooks:
+    -   id: clang-format
+        types_or: [c++, c, cuda]
