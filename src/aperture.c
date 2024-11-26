@@ -485,7 +485,7 @@ int sep_sum_circann_multi(
         */
         if (im->segmap) {
           if (id > 0) {
-            if ((sconvert(segt) > 0.) & (sconvert(segt) != id)) {
+            if ((sconvert(segt) > 0.) && (sconvert(segt) != id)) {
               *flag |= SEP_APER_HASMASKED;
               ismasked = 1;
             }
@@ -737,7 +737,7 @@ int sep_kron_radius(
         */
         if (im->segmap) {
           if (id > 0) {
-            if ((sconvert(segt) > 0.) & (sconvert(segt) != id)) {
+            if ((sconvert(segt) > 0.) && (sconvert(segt) != id)) {
               ismasked = 1;
             }
           } else {
