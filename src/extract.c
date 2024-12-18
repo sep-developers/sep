@@ -43,6 +43,7 @@ _Thread_local int64_t plistoff_value, plistoff_cdvalue, plistoff_thresh, plistof
 _Thread_local int64_t plistsize;
 _Thread_local unsigned int randseed;
 static _Atomic size_t extract_pixstack = 300000;
+static _Atomic size_t extract_object_limit = 5000;
 
 /* get and set pixstack */
 void sep_set_extract_pixstack(size_t val) {
@@ -51,6 +52,15 @@ void sep_set_extract_pixstack(size_t val) {
 
 size_t sep_get_extract_pixstack() {
   return extract_pixstack;
+}
+
+/* get and set max object count */
+void sep_set_extract_object_limit(size_t val) {
+  extract_object_limit = val;
+}
+
+size_t sep_get_extract_object_limit() {
+  return extract_object_limit;
 }
 
 int sortit(
@@ -220,7 +230,7 @@ int sep_extract(
   infostruct curpixinfo, initinfo, freeinfo;
   objliststruct objlist;
   char newmarker;
-  size_t mem_pixstack;
+  size_t mem_pixstack, object_limit;
   int64_t nposize, oldnposize;
   int64_t w, h;
   int64_t co, i, pstop, xl, xl2, yl, cn;
@@ -277,6 +287,7 @@ int sep_extract(
   memset(&deblendctx, 0, sizeof(deblendctx));
 
   mem_pixstack = sep_get_extract_pixstack();
+  object_limit = sep_get_extract_object_limit();
 
   if (image->segmap) {
     QCALLOC(cumcounts, int64_t, numids, status);
@@ -599,10 +610,15 @@ int sep_extract(
           }
         }
       } else {
-        if (filter_type == SEP_FILTER_MATCHED) {
-          luflag = ((xl != w) && (sigscan[xl] > relthresh)) ? 1 : 0;
+
+        if (finalobjlist->nobj < object_limit) {
+          if (filter_type == SEP_FILTER_MATCHED) {
+            luflag = ((xl != w) && (sigscan[xl] > relthresh)) ? 1 : 0;
+          } else {
+            luflag = cdnewsymbol > thresh ? 1 : 0;
+          }
         } else {
-          luflag = cdnewsymbol > thresh ? 1 : 0;
+          luflag = 0;
         }
 
         if (luflag) {

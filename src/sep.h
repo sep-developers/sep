@@ -250,6 +250,10 @@ SEP_API int sep_extract(
 SEP_API void sep_set_extract_pixstack(size_t val);
 SEP_API size_t sep_get_extract_pixstack(void);
 
+/* set and get the number of maximimum objects that can be started in extract() */
+SEP_API void sep_set_extract_object_limit(size_t val);
+SEP_API size_t sep_get_extract_object_limit();
+
 /* set and get the number of sub-objects limit when deblending in extract() */
 SEP_API void sep_set_sub_object_limit(int val);
 SEP_API int sep_get_sub_object_limit(void);

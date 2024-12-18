@@ -522,13 +522,15 @@ float backguess(backstruct * bkg, float * mean, float * sigma)
                ? (int64_t)(ftemp > 0.0 ? ftemp + 0.5 : ftemp - 0.5)
                : nlevelsm1;
   }
-  *mean = fabs(sig) > 0.0
-              ? (fabs(bkg->sigma / (sig * bkg->qscale) - 1) < 0.0
-                     ? bkg->qzero + mea * bkg->qscale
-                     : (fabs((mea - med) / sig) < 0.3
-                            ? bkg->qzero + (2.5 * med - 1.5 * mea) * bkg->qscale
-                            : bkg->qzero + med * bkg->qscale))
-              : bkg->qzero + mea * bkg->qscale;
+  // Always use trimmed mean instead of median or mode estimate until this is resolved
+  *mean = bkg->qzero+mea*bkg->qscale;
+  // *mean = fabs(sig) > 0.0
+  //             ? (fabs(bkg->sigma / (sig * bkg->qscale) - 1) < 0.0
+  //                    ? bkg->qzero + mea * bkg->qscale
+  //                    : (fabs((mea - med) / sig) < 0.3
+  //                           ? bkg->qzero + (2.5 * med - 1.5 * mea) * bkg->qscale
+  //                           : bkg->qzero + med * bkg->qscale))
+  //             : bkg->qzero + mea * bkg->qscale;
 
   *sigma = sig * bkg->qscale;
 
