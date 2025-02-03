@@ -552,21 +552,23 @@ def test_extract_with_maskthresh():
     # mask half the image
     ylim = data.shape[0] // 2
     mask = np.zeros(data.shape, dtype=float)
-    mask[ylim:, :] = 1.
+    mask[ylim:, :] = 1.0
 
-    objects_unmasked = sep.extract(data, 1.5 * bkg.globalrms)
-    objects_unmasked_w_thresh = sep.extract(data, 1.5 * bkg.globalrms, maskthresh=1.0)
+    objects_unmasked = sep.extract(data, 1.5 * bkg.globalrms, deblend_cont=1.0)
+    objects_unmasked_w_thresh = sep.extract(
+        data, 1.5 * bkg.globalrms, maskthresh=1.0, deblend_cont=1.0
+    )
 
     # Check that changing the mask threshold does not change anything,
     # if no mask is provided
     assert_allclose_structured(objects_unmasked, objects_unmasked_w_thresh)
 
-    objects_masked = sep.extract(data, 1.5 * bkg.globalrms, mask=mask)
+    objects_masked = sep.extract(data, 1.5 * bkg.globalrms, mask=mask, deblend_cont=1.0)
     objects_masked_w_hthresh = sep.extract(
-        data, 1.5 * bkg.globalrms, mask=mask, maskthresh=1.0
+        data, 1.5 * bkg.globalrms, mask=mask, maskthresh=1.0, deblend_cont=1.0
     )
     objects_masked_w_lthresh = sep.extract(
-        data, 1.5 * bkg.globalrms, mask=mask, maskthresh=0.5
+        data, 1.5 * bkg.globalrms, mask=mask, maskthresh=0.5, deblend_cont=1.0
     )
 
     # Applying a mask should return a different number of objects
