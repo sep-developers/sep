@@ -29,7 +29,7 @@ jobs:
     # First the source distribution is done on ubuntu. This is not related
     # to any operating system, so we could do it on the default os.
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - name: checkout
@@ -84,19 +84,10 @@ jobs:
       max-parallel: 4
       matrix:
         python-version: ["3.12"]
-        os: [windows-latest, macos-latest, ubuntu-latest]
-        include:
-          - os: ubuntu-20.04
-            cibw_archs: "aarch64"
+        os: [windows-latest, macos-latest, ubuntu-24.04, ubuntu-24.04-arm]
 
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up QEMU
-        if: runner.os == 'Linux'
-        uses: docker/setup-qemu-action@v3
-        with:
-          platforms: arm64
 
       - name: checkout
         uses: actions/checkout@v4
@@ -113,18 +104,6 @@ jobs:
         run: python -m pip install cibuildwheel
 
       - name: Build wheels
-        if: matrix.cibw_archs == 'aarch64'
-        run: python -m cibuildwheel --output-dir wheelhouse
-        env:
-          CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-* cp313-*"
-          CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
-          CIBW_MANYLINUX_I686_IMAGE: manylinux2014
-          CIBW_BUILD_VERBOSITY: 1
-          CIBW_SKIP: '*-musllinux_*'
-          CIBW_ARCHS_LINUX: "aarch64"
-
-      - name: Build wheels
-        if: matrix.cibw_archs != 'aarch64'
         run: python -m cibuildwheel --output-dir wheelhouse
         env:
           CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-* cp313-*"
