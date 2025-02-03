@@ -1,9 +1,7 @@
 SEP
 ===
 
-Python and C library for Source Extraction and Photometry, originally
-developed at [kbarbary/sep](https://github.com/kbarbary/sep) and later
-maintained at [PJ-Watson/sep-pjw](https://github.com/PJ-Watson/sep-pjw).
+Python and C library for Source Extraction and Photometry.
 
 [![PyPI](https://img.shields.io/pypi/v/sep?label=PyPI)](https://pypi.python.org/pypi/sep)
 [![PyPI - Downloads](https://img.shields.io/pypi/dm/sep?label=PyPI%20Downloads)
@@ -65,7 +63,7 @@ instructions.
 Python
 ------
 
-**Documentation:** http://sep-pjw.readthedocs.io
+**Documentation:** http://sep.readthedocs.io
 
 **Requirements:**
 
