@@ -551,8 +551,8 @@ def test_extract_with_maskthresh():
 
     # mask half the image
     ylim = data.shape[0] // 2
-    mask = np.zeros(data.shape, dtype=np.bool_)
-    mask[ylim:, :] = True
+    mask = np.zeros(data.shape, dtype=float)
+    mask[ylim:, :] = 1.
 
     objects_unmasked = sep.extract(data, 1.5 * bkg.globalrms)
     objects_unmasked_w_thresh = sep.extract(data, 1.5 * bkg.globalrms, maskthresh=1.0)
