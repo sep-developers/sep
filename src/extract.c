@@ -187,11 +187,13 @@ void arraybuffer_free(arraybuffer * buf) {
  * So, this routine sets masked pixels to zero in the image buffer and
  * infinity in the noise buffer (if present). It affects the first
  */
-void apply_mask_line(arraybuffer * mbuf, arraybuffer * imbuf, arraybuffer * nbuf) {
+void apply_mask_line(
+    arraybuffer * mbuf, arraybuffer * imbuf, arraybuffer * nbuf, double maskthresh
+) {
   int64_t i;
 
   for (i = 0; i < mbuf->bw; i++) {
-    if (mbuf->lastline[i] > 0.0) {
+    if (mbuf->lastline[i] > maskthresh) {
       imbuf->lastline[i] = 0.0;
       if (nbuf) {
         nbuf->lastline[i] = BIG;
@@ -488,7 +490,7 @@ int sep_extract(
       }
       if (image->mask) {
         arraybuffer_readline(&mbuf);
-        apply_mask_line(&mbuf, &dbuf, (isvarnoise ? &nbuf : NULL));
+        apply_mask_line(&mbuf, &dbuf, (isvarnoise ? &nbuf : NULL), image->maskthresh);
       }
       if (image->segmap) {
         arraybuffer_readline(&sbuf);

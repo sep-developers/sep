@@ -539,6 +539,48 @@ def test_extract_with_mask():
 
 
 @pytest.mark.skipif(NO_FITS, reason="no FITS reader")
+def test_extract_with_maskthresh():
+    """
+    Test that object detection only occurs in unmasked regions.
+    """
+
+    # Get some background-subtracted test data:
+    data = np.copy(image_data)
+    bkg = sep.Background(data, bw=64, bh=64, fw=3, fh=3)
+    bkg.subfrom(data)
+
+    # mask half the image
+    ylim = data.shape[0] // 2
+    mask = np.zeros(data.shape, dtype=np.bool_)
+    mask[ylim:, :] = True
+
+    objects_unmasked = sep.extract(data, 1.5 * bkg.globalrms)
+    objects_unmasked_w_thresh = sep.extract(data, 1.5 * bkg.globalrms, maskthresh=1.0)
+
+    # Check that changing the mask threshold does not change anything,
+    # if no mask is provided
+    assert_allclose_structured(objects_unmasked, objects_unmasked_w_thresh)
+
+    objects_masked = sep.extract(data, 1.5 * bkg.globalrms, mask=mask)
+    objects_masked_w_hthresh = sep.extract(
+        data, 1.5 * bkg.globalrms, mask=mask, maskthresh=1.0
+    )
+    objects_masked_w_lthresh = sep.extract(
+        data, 1.5 * bkg.globalrms, mask=mask, maskthresh=0.5
+    )
+
+    # Applying a mask should return a different number of objects
+    assert len(objects_unmasked) != len(objects_masked)
+
+    # As long as the mask is above the threshold, the results should not change
+    assert_allclose_structured(objects_masked, objects_masked_w_lthresh)
+
+    # Object detection where the maskthresh >= max(mask) should be the same
+    # as if no mask were provided
+    assert_allclose_structured(objects_unmasked, objects_masked_w_hthresh)
+
+
+@pytest.mark.skipif(NO_FITS, reason="no FITS reader")
 def test_extract_segmentation_map():
     """
     Test the returned segmentation map.

@@ -632,7 +632,8 @@ def extract(np.ndarray data not None, float thresh, err=None, var=None,
     mask : `~numpy.ndarray`, optional
         Mask array. ``True`` values, or numeric values greater than
         ``maskthresh``, are considered masked. Masking a pixel is equivalent
-        to setting data to zero and noise (if present) to infinity.
+        to setting data to zero and noise (if present) to infinity, and occurs
+        *before* filtering.
     maskthresh : float, optional
         Threshold for a pixel to be masked. Default is ``0.0``.
     minarea : int, optional
