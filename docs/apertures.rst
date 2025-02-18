@@ -133,6 +133,12 @@ aperture photometry if the Kron radius is too small. For example:
    fluxerr[use_circle] = cfluxerr
    flag[use_circle] = cflag
 
+.. warning::
+   Caution should be used when calculating Kron radii in crowded fields.
+   In almost all cases, one would want to pass in a segmentation map to
+   mask out nearby  objects, as described below in
+   :ref:`segmentation masking`.
+
 Equivalent of FLUX_RADIUS in Source Extractor
 ---------------------------------------------
 
@@ -179,6 +185,7 @@ of 0.5 and a normalizing flux of ``FLUX_AUTO``. The equivalent here is:
     sig = 2. / 2.35 * r  # r from sep.flux_radius() above, with fluxfrac = 0.5
     xwin, ywin, flag = sep.winpos(data, objs['x'], objs['y'], sig)
 
+.. _segmentation masking:
 
 Segmentation-masked image measurements
 --------------------------------------

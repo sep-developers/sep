@@ -221,10 +221,10 @@ cdef int _get_sep_dtype(dtype) except -1:
     """Convert a numpy dtype to the corresponding SEP dtype integer code."""
     if not dtype.isnative:
         raise ValueError(
-            "Input array with dtype '{0}' has non-native byte order. "
+            "Input array with dtype `{0}` has non-native byte order. "
             "Only native byte order arrays are supported. "
-            "To change the byte order of the array 'data', do "
-            "'data = data.byteswap().newbyteorder()'".format(dtype))
+            "To change the byte order of the array `data`, do "
+            "`data = data.astype(data.dtype.newbyteorder('='))`".format(dtype))
     t = dtype.type
     if t is np.single:
         return SEP_TFLOAT
@@ -1060,10 +1060,17 @@ def sum_circle(np.ndarray data not None, x, y, r,
                 1, SEP_MASK_IGNORE, &bkgflux, &bkgfluxerr, &bkgarea, &bkgflag)
             _assert_ok(status)
 
+            if not bkgarea > 0:
+                raise ValueError(
+                    "The background annulus does not contain any valid pixels, "
+                    "for the object at index "
+                    f"{np.PyArray_MultiIter_INDEX(it)}."
+                )
+
             if area1 > 0:
-              flux1 -= bkgflux / bkgarea * area1
-              bkgfluxerr = bkgfluxerr / bkgarea * area1
-              fluxerr1 = sqrt(fluxerr1*fluxerr1 + bkgfluxerr*bkgfluxerr)
+                flux1 -= bkgflux / bkgarea * area1
+                bkgfluxerr = bkgfluxerr / bkgarea * area1
+                fluxerr1 = sqrt(fluxerr1*fluxerr1 + bkgfluxerr*bkgfluxerr)
             (<double*>np.PyArray_MultiIter_DATA(it, 6))[0] = flux1
             (<double*>np.PyArray_MultiIter_DATA(it, 7))[0] = fluxerr1
             (<short*>np.PyArray_MultiIter_DATA(it, 8))[0] = flag1
@@ -1340,7 +1347,6 @@ def sum_ellipse(np.ndarray data not None, x, y, a, b, theta, r=1.0,
         sumerr = np.empty(shape, dt)
         flag = np.empty(shape, np.short)
 
-        #it = np.broadcast(x, y, a, b, theta, r, sum, sumerr, flag)
         it = np.broadcast(x, y, a, b, theta, r, seg_id, sum, sumerr, flag)
         while np.PyArray_MultiIter_NOTDONE(it):
             status = sep_sum_ellipse(
@@ -1376,7 +1382,6 @@ def sum_ellipse(np.ndarray data not None, x, y, a, b, theta, r=1.0,
         sumerr = np.empty(shape, dt)
         flag = np.empty(shape, np.short)
 
-        # it = np.broadcast(x, y, a, b, theta, r, rin, rout, sum, sumerr, flag)
         it = np.broadcast(x, y, a, b, theta, r, rin, rout, seg_id, sum, sumerr, flag)
         while np.PyArray_MultiIter_NOTDONE(it):
             status = sep_sum_ellipse(
@@ -1404,7 +1409,14 @@ def sum_ellipse(np.ndarray data not None, x, y, a, b, theta, r=1.0,
                 subpix, 0, &bkgflux, &bkgfluxerr, &bkgarea, &bkgflag)
             _assert_ok(status)
 
-            if area1 > 0:
+            if not bkgarea > 0:
+                raise ValueError(
+                    "The background annulus does not contain any valid pixels, "
+                    "for the object at index "
+                    f"{np.PyArray_MultiIter_INDEX(it)}."
+                )
+
+            if (area1 > 0):
               flux1 -= bkgflux / bkgarea * area1
               bkgfluxerr = bkgfluxerr / bkgarea * area1
               fluxerr1 = sqrt(fluxerr1*fluxerr1 + bkgfluxerr*bkgfluxerr)
