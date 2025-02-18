@@ -4,10 +4,9 @@ SEP
 Python and C library for Source Extraction and Photometry.
 
 [![PyPI](https://img.shields.io/pypi/v/sep?label=PyPI)](https://pypi.python.org/pypi/sep)
-[![PyPI - Downloads](https://img.shields.io/pypi/dm/sep?label=PyPI%20Downloads)
-](https://pypi.python.org/pypi/sep)
-![Build Status](https://github.com/sep-developers/sep/workflows/CI/badge.svg)
-[![Documentation Status](https://readthedocs.org/projects/sep-pjw/badge/?version=latest)](https://sep-pjw.readthedocs.io/en/latest/?badge=latest)
+[![PyPI - Downloads](https://img.shields.io/pypi/dm/sep?label=PyPI%20Downloads)](https://pypi.python.org/pypi/sep)
+[![Build Status](https://github.com/sep-developers/sep/workflows/CI/badge.svg)](https://github.com/sep-developers/sep/actions)
+[![Documentation Status](https://readthedocs.org/projects/sep/badge/?version=latest)](https://sep.readthedocs.io/en/latest/?badge=latest)
 [![JOSS](http://joss.theoj.org/papers/10.21105/joss.00058/status.svg)](http://dx.doi.org/10.21105/joss.00058)
 
 *"... [it's] an SEP: Somebody Else's Problem."
