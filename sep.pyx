@@ -16,7 +16,13 @@ from libc.math cimport sqrt
 
 np.import_array()  # To access the numpy C-API.
 
-from _version import version as __version__
+from importlib.metadata import PackageNotFoundError, version
+
+try:
+    __version__ = version("sep")
+except PackageNotFoundError:
+    # package is not installed
+    pass
 
 # -----------------------------------------------------------------------------
 # Definitions from the SEP C library
