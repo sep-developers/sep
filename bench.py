@@ -5,7 +5,7 @@
 from __future__ import print_function
 
 import time
-from os.path import join
+from pathlib import Path
 
 import numpy as np
 
@@ -30,44 +30,99 @@ except ImportError:
         from astropy.io.fits import getdata
 
         HAVE_FITS = True
+        NEED_BYTESWAP = True
     except ImportError:
         HAVE_FITS = False
 
-CONDENSED = True
+import argparse
+
+parser = argparse.ArgumentParser(description="SEP Benchmark script.")
+parser.add_argument(
+    "-c",
+    "--condensed",
+    default=False,
+    action="store_true",
+    help="Only run a condensed subset of the benchmarks.",
+)
+parser.add_argument(
+    "-t",
+    "--tiles",
+    default=4,
+    type=int,
+    help=(
+        "The maximum number of tiles for the image background benchmark, "
+        "i.e. the image size will be `(t*256)^2`."
+    ),
+)
+parser.add_argument(
+    "-a",
+    "--apertures",
+    default=1000,
+    type=int,
+    help=(
+        "The number of apertures to use for benchmarking the aperture "
+        "photometry, by default 1000."
+    ),
+)
+parser.add_argument(
+    "-r",
+    "--radii",
+    default=[3, 5, 10, 20],
+    type=float,
+    nargs="+",
+    help=(
+        "The radii of the apertures to test. Ignored if the `--condensed` "
+        "flag is passed, otherwise defaults to `3, 5, 10, 20`."
+    ),
+)
+parser.add_argument(
+    "-n",
+    "--nloop",
+    default=50,
+    type=int,
+    help=("The number of loops to run for all tests, by default 50."),
+)
+args = parser.parse_args()
 
 if HAVE_FITS:
-    rawdata = getdata(join("data", "image.fits"))  # original is 256 x 256
-    data = np.tile(rawdata, (4, 4))
+    rawdata = getdata(
+        Path(__file__).parent / "data" / "image.fits"
+    )  # original is 256 x 256
+    if NEED_BYTESWAP:
+        rawdata = rawdata.astype(rawdata.dtype.newbyteorder("="))
+else:
+    print("No FITS reader found, generating random data instead.")
+    rawdata = np.random.random((256, 256))
 
-    print("test image shape:", data.shape)
-    print("test image dtype:", data.dtype)
+data = np.tile(rawdata, (4, 4))
 
-    t0 = time.time()
-    bkg = sep.Background(data)  # estimate background
-    t1 = time.time()
-    print("measure background: {0:6.2f} ms".format((t1 - t0) * 1.0e3))
+print("test image shape:", data.shape)
+print("test image dtype:", data.dtype)
 
-    t0 = time.time()
-    bkg.subfrom(data)  # subtract it
-    t1 = time.time()
-    print("subtract background: {0:6.2f} ms".format((t1 - t0) * 1.0e3))
+t0 = time.time()
+bkg = sep.Background(data)  # estimate background
+t1 = time.time()
+print("measure background: {0:6.2f} ms".format((t1 - t0) * 1.0e3))
 
-    t0 = time.time()
-    backarr = bkg.back(dtype=np.float64)  # background
-    t1 = time.time()
-    print("background array: {0:6.2f} ms".format((t1 - t0) * 1.0e3))
+t0 = time.time()
+bkg.subfrom(data)  # subtract it
+t1 = time.time()
+print("subtract background: {0:6.2f} ms".format((t1 - t0) * 1.0e3))
 
-    t0 = time.time()
-    rmsarr = bkg.rms()
-    t1 = time.time()
-    print("rms array: {0:6.2f} ms".format((t1 - t0) * 1.0e3))
+t0 = time.time()
+backarr = bkg.back(dtype=np.float64)  # background
+t1 = time.time()
+print("background array: {0:6.2f} ms".format((t1 - t0) * 1.0e3))
 
-    t0 = time.time()
-    objects = sep.extract(data, 1.5 * bkg.globalrms)
-    t1 = time.time()
-    print(
-        "extract: {0:6.2f} ms  [{1:d} objects]".format((t1 - t0) * 1.0e3, len(objects))
-    )
+t0 = time.time()
+rmsarr = bkg.rms()
+t1 = time.time()
+print("rms array: {0:6.2f} ms".format((t1 - t0) * 1.0e3))
+
+t0 = time.time()
+objects = sep.extract(data, 1.5 * bkg.globalrms)
+t1 = time.time()
+print("extract: {0:6.2f} ms  [{1:d} objects]".format((t1 - t0) * 1.0e3, len(objects)))
 
 # --------------------------------------------------------------------------
 # Background subtraction
@@ -94,27 +149,25 @@ else:
     )
     blankline = "|                         |                 |"
 
-nloop = 50
-
-for ntile in [4]:
+for ntile in np.arange(1, args.tiles + 1, dtype=int):
     data = np.tile(rawdata, (ntile, ntile))
     line = "| {0:4d}^2 image background |".format(data.shape[0])
 
     t0 = time.time()
-    for _ in range(0, nloop):
+    for _ in range(0, args.nloop):
         bkg = sep.Background(data)
     t1 = time.time()
-    t_sep = (t1 - t0) * 1.0e3 / nloop
+    t_sep = (t1 - t0) * 1.0e3 / args.nloop
     line += "      {0:7.2f} ms |".format(t_sep)
 
     if HAVE_PHOTUTILS:
         t0 = time.time()
-        for _ in range(0, nloop):
+        for _ in range(0, args.nloop):
             from photutils import background
 
             bkg = background.Background2D(data, (64, 64))  # estimate background
         t1 = time.time()
-        t_pu = (t1 - t0) * 1.0e3 / nloop
+        t_pu = (t1 - t0) * 1.0e3 / args.nloop
         line += "      {0:7.2f} ms | {1:6.2f} |".format(t_pu, t_pu / t_sep)
 
     print(line)
@@ -122,23 +175,22 @@ for ntile in [4]:
 # ------------------------------------------------------------------------------
 # Circular aperture photometry benchmarks
 
-if not CONDENSED:
+if not args.condensed:
     print(blankline)
     line = "| **aperture photometry** |                 |"
     if HAVE_PHOTUTILS:
         line += "                 |        |"
     print(line)
 
-naper = 1000
 data = np.ones((2000, 2000), dtype=np.float32)
-x = np.random.uniform(200.0, 1800.0, naper)
-y = np.random.uniform(200.0, 1800.0, naper)
+x = np.random.uniform(200.0, 1800.0, args.apertures)
+y = np.random.uniform(200.0, 1800.0, args.apertures)
 
-if CONDENSED:
+if args.condensed:
     r_list = [5.0]
     subpix_list = [(5, "subpixel", "subpix=5"), (0, "exact", "exact")]
 else:
-    r_list = [3.0, 5.0, 10.0, 20.0]
+    r_list = args.radii
     subpix_list = [
         (1, "center", "subpix=1"),
         (5, "subpixel", "subpix=5"),
@@ -151,10 +203,10 @@ for r in r_list:
         line = "| circles  r={0:2d}  {1:8s} |".format(int(r), label)
 
         t0 = time.time()
-        for _ in range(0, nloop):
+        for _ in range(0, args.nloop):
             flux, fluxerr, flag = sep.sum_circle(data, x, y, r, subpix=subpix)
         t1 = time.time()
-        t_sep = (t1 - t0) * 1.0e6 / naper / nloop
+        t_sep = (t1 - t0) * 1.0e6 / args.apertures / args.nloop
         line += " {0:7.2f} us/aper |".format(t_sep)
 
         if HAVE_PHOTUTILS:
@@ -162,17 +214,17 @@ for r in r_list:
 
             apertures = photutils.aperture.CircularAperture(np.column_stack((x, y)), r)
             t0 = time.time()
-            for _ in range(0, nloop):
+            for _ in range(0, args.nloop):
                 res = photutils.aperture.aperture_photometry(
                     data, apertures, method=method, subpixels=subpix
                 )
             t1 = time.time()
-            t_pu = (t1 - t0) * 1.0e6 / naper / nloop
+            t_pu = (t1 - t0) * 1.0e6 / args.apertures / args.nloop
             line += " {0:7.2f} us/aper | {1:6.2f} |".format(t_pu, t_pu / t_sep)
 
         print(line)
 
-if not CONDENSED:
+if not args.condensed:
     print(blankline)
 
 a = 1.0
@@ -184,12 +236,12 @@ for r in r_list:
         line = "| ellipses r={0:2d}  {1:8s} |".format(int(r), label)
 
         t0 = time.time()
-        for _ in range(0, nloop):
+        for _ in range(0, args.nloop):
             flux, fluxerr, flag = sep.sum_ellipse(
                 data, x, y, a, b, theta, r, subpix=subpix
             )
         t1 = time.time()
-        t_sep = (t1 - t0) * 1.0e6 / naper / nloop
+        t_sep = (t1 - t0) * 1.0e6 / args.apertures / args.nloop
         line += " {0:7.2f} us/aper |".format(t_sep)
 
         if HAVE_PHOTUTILS:
@@ -199,12 +251,12 @@ for r in r_list:
                 np.column_stack((x, y)), a * r, b * r, theta
             )
             t0 = time.time()
-            for _ in range(0, nloop):
+            for _ in range(0, args.nloop):
                 res = photutils.aperture.aperture_photometry(
                     data, apertures, method=method, subpixels=subpix
                 )
             t1 = time.time()
-            t_pu = (t1 - t0) * 1.0e6 / naper / nloop
+            t_pu = (t1 - t0) * 1.0e6 / args.apertures / args.nloop
             line += " {0:7.2f} us/aper | {1:6.2f} |".format(t_pu, t_pu / t_sep)
 
         print(line)
