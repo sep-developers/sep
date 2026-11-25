@@ -79,9 +79,10 @@ typedef struct {
 
 
 /* globals */
-extern _Thread_local int64_t plistexist_cdvalue, plistexist_thresh, plistexist_var;
-extern _Thread_local int64_t plistoff_value, plistoff_cdvalue, plistoff_thresh,
-    plistoff_var;
+extern _Thread_local int64_t plistexist_cdvalue, plistexist_detvalue, plistexist_thresh,
+    plistexist_var;
+extern _Thread_local int64_t plistoff_value, plistoff_cdvalue, plistoff_detvalue,
+    plistoff_thresh, plistoff_var;
 extern _Thread_local int64_t plistsize;
 extern _Thread_local unsigned int randseed;
 
@@ -115,6 +116,7 @@ typedef struct {
   float flux; /* integrated mes. flux */
   float fluxerr; /* integrated variance */
   PIXTYPE fdpeak; /* peak intensity (ADU) */
+  PIXTYPE detpeak; /* peak detection statistic (S/N with matched filter) */
   PIXTYPE dpeak; /* peak intensity (ADU) */
   PIXTYPE peak; /* peak intensity (ADU) */
 

@@ -59,9 +59,16 @@ int analysemthresh(int objnb, objliststruct * objlist, int minarea, PIXTYPE thre
   /*-- Find the minareath pixel in decreasing intensity for CLEANing */
   for (pixt = pixel + obj->firstpix; pixt >= pixel; pixt = pixel + PLIST(pixt, nextpix))
   {
-    /* amount pixel is above threshold */
-    tpix = PLISTPIX(pixt, cdvalue)
-           - (PLISTEXIST(thresh) ? PLISTPIX(pixt, thresh) : thresh);
+    /* amount pixel is above threshold. With matched filtering, detection was
+     * on the S/N statistic, and `thresh` is the S/N threshold: cdvalue and the
+     * per-pixel (unconvolved data) threshold are in different units, and
+     * their difference may be negative for well-detected pixels. */
+    if (PLISTEXIST(detvalue)) {
+      tpix = PLISTPIX(pixt, detvalue) - thresh;
+    } else {
+      tpix = PLISTPIX(pixt, cdvalue)
+             - (PLISTEXIST(thresh) ? PLISTPIX(pixt, thresh) : thresh);
+    }
     if (h > 0) {
       *(heapt++) = (float)tpix;
     } else if (h) {
@@ -100,7 +107,7 @@ exit:
 void preanalyse(int no, objliststruct * objlist) {
   objstruct * obj = &objlist->obj[no];
   pliststruct *pixel = objlist->plist, *pixt;
-  PIXTYPE peak, cpeak, val, cval;
+  PIXTYPE peak, cpeak, detpeak, val, cval, detval;
   double rv;
   int64_t x, y, xmin, xmax, ymin, ymax, fdnpix;
   int64_t xpeak, ypeak, xcpeak, ycpeak;
@@ -108,7 +115,7 @@ void preanalyse(int no, objliststruct * objlist) {
   /*-----  initialize stacks and bounds */
   fdnpix = 0;
   rv = 0.0;
-  peak = cpeak = -BIG;
+  peak = cpeak = detpeak = -BIG;
   ymin = xmin = 2 * MAXPICSIZE; /* to be really sure!! */
   ymax = xmax = 0;
   xpeak = ypeak = xcpeak = ycpeak = 0; /* avoid -Wall warnings */
@@ -120,6 +127,7 @@ void preanalyse(int no, objliststruct * objlist) {
     y = PLIST(pixt, y);
     val = PLISTPIX(pixt, value);
     cval = PLISTPIX(pixt, cdvalue);
+    detval = PLISTPIX(pixt, detvalue);
     if (peak < val) {
       peak = val;
       xpeak = x;
@@ -129,6 +137,9 @@ void preanalyse(int no, objliststruct * objlist) {
       cpeak = cval;
       xcpeak = x;
       ycpeak = y;
+    }
+    if (detpeak < detval) {
+      detpeak = detval;
     }
     rv += cval;
     if (xmin > x) {
@@ -149,6 +160,7 @@ void preanalyse(int no, objliststruct * objlist) {
   obj->fdnpix = fdnpix;
   obj->fdflux = (float)rv;
   obj->fdpeak = cpeak;
+  obj->detpeak = detpeak;
   obj->dpeak = peak;
   obj->xpeak = xpeak;
   obj->ypeak = ypeak;
