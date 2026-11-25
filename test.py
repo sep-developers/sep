@@ -514,6 +514,71 @@ def test_extract_matched_filter_at_edge():
     assert objects["npix"][0] == 6
 
 
+def _gaussian_kernel(size, sigma):
+    y, x = np.mgrid[:size, :size] - (size - 1) / 2
+    return np.exp(-(x**2 + y**2) / (2 * sigma**2))
+
+
+@pytest.mark.parametrize("sigma", [0.5, 1.5])
+def test_extract_matched_clean_removes_wing_fragments(sigma):
+    """With matched filtering, cleaning still removes the deblended noise
+    fragments in the wings of a bright star."""
+    rng = np.random.default_rng(7)
+    y, x = np.mgrid[:200, :200]
+    alpha = 3.0 / (2 * np.sqrt(2 ** (1 / 1.5) - 1))
+    prof = (1 + ((x - 100.3) ** 2 + (y - 99.7) ** 2) / alpha**2) ** -1.5
+    data = 3e6 * prof / prof.sum() + rng.normal(size=prof.shape)
+    err = np.ones_like(data)
+    kernel = _gaussian_kernel(int(np.ceil(2 * sigma)) * 2 + 1, sigma)
+
+    def fragments(clean):
+        obj = sep.extract(
+            data, 3.0, err=err, filter_kernel=kernel, deblend_cont=1e-4, clean=clean
+        )
+        assert np.any(np.hypot(obj["x"] - 100.3, obj["y"] - 99.7) < 0.5)
+        return len(obj) - 1
+
+    n_raw = fragments(False)
+    assert n_raw > 10
+    assert fragments(True) < 0.3 * n_raw
+
+
+def test_extract_matched_clean_keeps_significant_neighbours():
+    """Cleaning must not remove well-detected stars near brighter ones when
+    detecting with a matched filter (S/N vs data units in cleaning)."""
+    rng = np.random.default_rng(0)
+    fwhm = 5.0
+    s = fwhm / 2.3548
+    norm = np.sqrt(4 * np.pi * s**2)  # flux per unit S/N at unit noise
+    y, x = np.mgrid[:400, :400]
+    data = rng.normal(size=(400, 400))
+    faint = []
+    for cy in range(40, 400, 80):
+        for cx in range(40, 400, 80):
+            snr = rng.uniform(12, 20)
+            for x0, f in ((cx - 9, 100.0), (cx + 9, snr)):
+                data += (
+                    f
+                    * norm
+                    / (2 * np.pi * s**2)
+                    * np.exp(-((x - x0) ** 2 + (y - cy) ** 2) / (2 * s**2))
+                )
+            faint.append((cx + 9, cy))
+    faint = np.array(faint, dtype=float)
+    err = np.ones_like(data)
+    kernel = _gaussian_kernel(5, 1.5)
+
+    def found(clean):
+        obj = sep.extract(data, 4.0, err=err, filter_kernel=kernel, clean=clean)
+        d = np.hypot(
+            obj["x"][:, None] - faint[None, :, 0], obj["y"][:, None] - faint[None, :, 1]
+        )
+        return d.min(axis=0) < 1.5
+
+    assert np.all(found(False))
+    assert np.all(found(True))
+
+
 @pytest.mark.skipif(NO_FITS, reason="no FITS reader")
 def test_extract_with_mask():
     """

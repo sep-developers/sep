@@ -38,8 +38,10 @@
 /* thresholding filtered weight-maps */
 
 /* globals */
-_Thread_local int64_t plistexist_cdvalue, plistexist_thresh, plistexist_var;
-_Thread_local int64_t plistoff_value, plistoff_cdvalue, plistoff_thresh, plistoff_var;
+_Thread_local int64_t plistexist_cdvalue, plistexist_detvalue, plistexist_thresh,
+    plistexist_var;
+_Thread_local int64_t plistoff_value, plistoff_cdvalue, plistoff_detvalue,
+    plistoff_thresh, plistoff_var;
 _Thread_local int64_t plistsize;
 _Thread_local unsigned int randseed;
 static _Atomic size_t extract_pixstack = 300000;
@@ -69,8 +71,10 @@ int segsortit(
     objliststruct * finalobjlist,
     double gain
 );
-void plistinit(int hasconv, int hasvar);
-void clean(objliststruct * objlist, double clean_param, int * survives);
+void plistinit(int hasconv, int hasdet, int hasvar);
+void clean(
+    objliststruct * objlist, double clean_param, double detthresh, int * survives
+);
 PIXTYPE get_mean_thresh(infostruct * info, pliststruct * pixel);
 int convert_to_catalog(
     objliststruct * objlist,
@@ -427,7 +431,15 @@ int sep_extract(
 
 
   /* Allocate memory for the pixel list */
-  plistinit((conv != NULL), (image->noise_type != SEP_NOISE_NONE));
+  /* the S/N statistic is stored per pixel when using the matched filter
+   * (only possible when convolving and when there is a noise array, see
+   * below) with a relative threshold, so that cleaning can use it */
+  plistinit(
+      (conv != NULL),
+      (conv != NULL && isvarnoise && filter_type == SEP_FILTER_MATCHED
+       && thresh_type == SEP_THRESH_REL),
+      (image->noise_type != SEP_NOISE_NONE)
+  );
   if (!(pixel = objlist.plist = malloc(nposize = mem_pixstack * plistsize))) {
     status = MEMORY_ALLOC_ERROR;
     goto exit;
@@ -579,6 +591,9 @@ int sep_extract(
               if (PLISTEXIST(cdvalue)) {
                 PLISTPIX(pixt, cdvalue) = cdnewsymbol;
               };
+              if (PLISTEXIST(detvalue)) {
+                PLISTPIX(pixt, detvalue) = sigscan[xl];
+              };
               if (PLISTEXIST(var)) {
                 PLISTPIX(pixt, var) = pixvar;
               };
@@ -626,6 +641,9 @@ int sep_extract(
           PLIST(pixt, value) = scan[xl];
           if (PLISTEXIST(cdvalue)) {
             PLISTPIX(pixt, cdvalue) = cdnewsymbol;
+          };
+          if (PLISTEXIST(detvalue)) {
+            PLISTPIX(pixt, detvalue) = sigscan[xl];
           };
           if (PLISTEXIST(var)) {
             PLISTPIX(pixt, var) = pixvar;
@@ -804,16 +822,22 @@ int sep_extract(
     /* convert `finalobjlist` to an array of `sepobj` structs */
     /* if cleaning, see which objects "survive" cleaning. */
     if (clean_flag) {
+      /* With matched filtering, objects were detected on the S/N statistic,
+       * so cleaning works in S/N units with the S/N threshold. */
+      double detthresh = PLISTEXIST(detvalue) ? relthresh : 0.0;
+
       /* Calculate mthresh for all objects in the list (needed for cleaning) */
       for (i = 0; i < finalobjlist->nobj; i++) {
-        status = analysemthresh(i, finalobjlist, minarea, thresh);
+        status = analysemthresh(
+            i, finalobjlist, minarea, PLISTEXIST(detvalue) ? relthresh : thresh
+        );
         if (status != RETURN_OK) {
           goto exit;
         }
       }
 
       QMALLOC(survives, int, finalobjlist->nobj, status);
-      clean(finalobjlist, clean_param, survives);
+      clean(finalobjlist, clean_param, detthresh, survives);
     }
   }
   /* convert to output catalog */
@@ -1055,7 +1079,7 @@ earlyexit:
  * (originally init_plist() in sextractor)
 PURPOSE	initialize a pixel-list and its components.
  ***/
-void plistinit(int hasconv, int hasvar) {
+void plistinit(int hasconv, int hasdet, int hasvar) {
   pbliststruct * pbdum = NULL;
 
   plistsize = sizeof(pbliststruct);
@@ -1068,6 +1092,15 @@ void plistinit(int hasconv, int hasvar) {
   } else {
     plistexist_cdvalue = 0;
     plistoff_cdvalue = plistoff_value;
+  }
+
+  if (hasdet) {
+    plistexist_detvalue = 1;
+    plistoff_detvalue = plistsize;
+    plistsize += sizeof(PIXTYPE);
+  } else {
+    plistexist_detvalue = 0;
+    plistoff_detvalue = plistoff_cdvalue;
   }
 
   if (hasvar) {
@@ -1085,16 +1118,42 @@ void plistinit(int hasconv, int hasvar) {
 }
 
 
+/* Profile model of an object used for cleaning: amp * (1 + alpha*r^2)^-beta,
+ * reaching the detection threshold at the object's isophotal area.
+ *
+ * With matched filtering (detthresh > 0) objects are detected on the S/N
+ * statistic, while fdflux is in convolved data units and obj->thresh in
+ * unconvolved data units. The amplitude is then converted to S/N units with
+ * the object's peak S/N to convolved-data ratio, and compared with detthresh,
+ * consistently with mthresh (see analysemthresh()). */
+static void clean_profile(
+    const objstruct * obj, double beta, double detthresh, double * amp, double * alpha
+) {
+  double unitarea = PI * obj->a * obj->b;
+  double a = obj->fdflux / (2 * unitarea * obj->abcor);
+  double t = obj->thresh;
+
+  if (detthresh > 0.0 && obj->fdpeak > 0.0 && obj->detpeak > 0.0) {
+    a *= obj->detpeak / obj->fdpeak;
+    t = detthresh;
+  }
+
+  *amp = a;
+  *alpha = (pow(a / t, 1.0 / beta) - 1) * unitarea / obj->fdnpix;
+}
+
 /************************** clean an objliststruct ***************************/
 /*
 Fill a list with whether each object in the list survived the cleaning
 (assumes that mthresh has already been calculated for all objects in the list)
 */
 
-void clean(objliststruct * objlist, double clean_param, int * survives) {
+void clean(
+    objliststruct * objlist, double clean_param, double detthresh, int * survives
+) {
   objstruct *obj1, *obj2;
   int64_t i, j;
-  double amp, ampin, alpha, alphain, unitarea, unitareain, beta, val;
+  double amp, ampin, alpha, alphain, beta, val;
   float dx, dy, rlim;
 
   beta = clean_param;
@@ -1111,9 +1170,7 @@ void clean(objliststruct * objlist, double clean_param, int * survives) {
     }
 
     /* parameters for test object */
-    unitareain = PI * obj1->a * obj1->b;
-    ampin = obj1->fdflux / (2 * unitareain * obj1->abcor);
-    alphain = (pow(ampin / obj1->thresh, 1.0 / beta) - 1) * unitareain / obj1->fdnpix;
+    clean_profile(obj1, beta, detthresh, &ampin, &alphain);
 
     /* loop over remaining objects in list*/
     obj2 = obj1 + 1;
@@ -1145,9 +1202,7 @@ void clean(objliststruct * objlist, double clean_param, int * survives) {
       /* if obj2 is bigger, see if it eats obj1 */
       else
       {
-        unitarea = PI * obj2->a * obj2->b;
-        amp = obj2->fdflux / (2 * unitarea * obj2->abcor);
-        alpha = (pow(amp / obj2->thresh, 1.0 / beta) - 1) * unitarea / obj2->fdnpix;
+        clean_profile(obj2, beta, detthresh, &amp, &alpha);
         val =
             1
             + alpha * (obj2->cxx * dx * dx + obj2->cyy * dy * dy + obj2->cxy * dx * dy);
